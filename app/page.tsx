@@ -155,7 +155,7 @@ export default function Home() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'new', participant: { ...participant, status: finalStatus }, companions }),
-      })
+      }).catch(() => {})
       setStep(3)
       fetchCount()
     } catch (e) {
