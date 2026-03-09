@@ -115,9 +115,12 @@ export default function Home() {
       }
 
       // 参加者を登録
+      const { data: eventData } = await supabase.from('events').select('id').single()
+      const eventId = eventData?.id
       const { data: participant, error } = await supabase
         .from('participants')
         .insert({
+          event_id: eventId,
           last_name: form.lastName,
           first_name: form.firstName,
           last_name_kana: form.lastNameKana,
