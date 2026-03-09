@@ -149,7 +149,13 @@ export default function Home() {
         await supabase.from('companions').insert(companionData)
       }
 
-      setSubmitted((isFull || willWait) ? 'waiting' : 'confirmed')
+      const finalStatus = (isFull || willWait) ? 'waiting' : 'confirmed'
+      setSubmitted(finalStatus)
+      fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'new', participant: { ...participant, status: finalStatus }, companions }),
+      })
       setStep(3)
       fetchCount()
     } catch (e) {
