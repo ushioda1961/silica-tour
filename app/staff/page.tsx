@@ -19,7 +19,7 @@ type Participant = {
   status: 'confirmed' | 'waiting' | 'cancelled'
   wait_no: number | null
   remarks: string
-  created_at: string
+  registered_at: string
   companions: Companion[]
 }
 
@@ -55,7 +55,7 @@ export default function StaffPage() {
     const { data, error } = await supabase
       .from('participants')
       .select('*, companions(*)')
-      .order('created_at', { ascending: true })
+      .order('registered_at', { ascending: true })
     if (!error && data) setParticipants(data)
     setLoading(false)
   }
