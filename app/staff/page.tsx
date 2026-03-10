@@ -56,11 +56,15 @@ export default function StaffPage() {
   }
 
   const getAgentName = (loginId: string) => {
-    const map: Record<string, string> = { 'ushioda': '牛王田雅章', 'kawakami': '川上利夫', 'ikeo': '池尾里絵', 'fujii': '藤井佑昴' }
+    const map: Record<string, string> = {
+      'ushioda': '牛王田雅章', 'kawakami': '川上利夫', 'ikeo': '池尾里絵', 'fujii': '藤井佑昴'
+    }
     return map[loginId] || ''
   }
 
-  useEffect(() => { if (loggedIn && userInfo) fetchData(userInfo) }, [loggedIn, userInfo])
+  useEffect(() => {
+    if (loggedIn && userInfo) fetchData(userInfo)
+  }, [loggedIn, userInfo])
 
   const handlePromote = async (p: Participant) => {
     const { error } = await supabase.from('participants').update({ status: 'confirmed', wait_no: null }).eq('id', p.id)
@@ -115,7 +119,8 @@ export default function StaffPage() {
         </div>
         <div style={{ marginBottom: 16 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: '#4a6080', marginBottom: 6 }}>パスワード</div>
-          <input type="password" value={password} onChange={e => { setPassword(e.target.value); setPwError('') }} onKeyDown={e => e.key === 'Enter' && handleLogin()} placeholder="パスワードを入力"
+          <input type="password" value={password} onChange={e => { setPassword(e.target.value); setPwError('') }}
+            onKeyDown={e => e.key === 'Enter' && handleLogin()} placeholder="パスワードを入力"
             style={{ width: '100%', padding: '12px 14px', borderRadius: 9, border: `1.5px solid ${pwError ? '#fca5a5' : '#dde8f5'}`, fontSize: 14, boxSizing: 'border-box' as const, outline: 'none' }} />
           {pwError && <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>{pwError}</div>}
         </div>
@@ -125,149 +130,120 @@ export default function StaffPage() {
   )
 
   // ─── メーカービュー ───
-  if (userInfo?.role === 'maker') return (
-    <div style={{ fontFamily: "'Hiragino Kaku Gothic ProN','Meiryo',sans-serif", background: '#0d1117', minHeight: '100vh' }}>
+  if (userInfo?.role === 'maker') {
+    const makerParticipants = participants.filter(p => p.status !== 'cancelled')
+    return (
+      <div style={{ fontFamily: "'Hiragino Kaku Gothic ProN','Meiryo',sans-serif", background: '#0a0f1a', minHeight: '100vh' }}>
+        <style>{`
+          @keyframes slideIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+          .pcard { animation: slideIn 0.3s ease both; }
+          .pcard:nth-child(2) { animation-delay: 0.05s; }
+          .pcard:nth-child(3) { animation-delay: 0.1s; }
+          .pcard:nth-child(4) { animation-delay: 0.15s; }
+          .pcard:nth-child(5) { animation-delay: 0.2s; }
+        `}</style>
 
-      {/* ヘッダー */}
-      <div style={{ background: 'rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '14px 20px' }}>
-        <div style={{ maxWidth: 680, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 34, height: 34, borderRadius: 9, background: 'linear-gradient(135deg,#22c55e,#16a34a)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>🏭</div>
-            <div>
-              <div style={{ fontSize: 9, color: '#475569', letterSpacing: '0.15em' }}>MAKER VIEW</div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: '#f1f5f9' }}>来場者チェック</div>
-            </div>
-          </div>
-          <button onClick={() => setLoggedIn(false)} style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 6, padding: '5px 12px', cursor: 'pointer' }}>ログアウト</button>
-        </div>
-      </div>
-
-      <div style={{ maxWidth: 680, margin: '0 auto', padding: '20px 16px' }}>
-
-        {/* サマリー数値 */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 24 }}>
-          {[
-            { label: '参加確定', val: confirmedCount, color: '#22c55e', bg: 'rgba(34,197,94,0.1)', border: 'rgba(34,197,94,0.25)' },
-            { label: '初回', val: firstTimers + firstTimerCompanions, color: '#f97316', bg: 'rgba(249,115,22,0.1)', border: 'rgba(249,115,22,0.25)' },
-            { label: 'リピート', val: repeaters + repeaterCompanions, color: '#60a5fa', bg: 'rgba(96,165,250,0.1)', border: 'rgba(96,165,250,0.25)' },
-            { label: '懇親会', val: partyCount, color: '#c084fc', bg: 'rgba(192,132,252,0.1)', border: 'rgba(192,132,252,0.25)' },
-          ].map(s => (
-            <div key={s.label} style={{ background: s.bg, border: `1px solid ${s.border}`, borderRadius: 10, padding: '10px 6px', textAlign: 'center' }}>
-              <div style={{ fontSize: 22, fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.val}</div>
-              <div style={{ fontSize: 9, color: s.color, marginTop: 3, fontWeight: 700 }}>{s.label}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* 色の凡例 */}
-        <div style={{ display: 'flex', gap: 16, marginBottom: 16, fontSize: 11, color: '#64748b' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <div style={{ width: 16, height: 16, borderRadius: 3, background: 'linear-gradient(135deg,#f97316,#fb923c)' }} />
-            <span>初回（オレンジ）</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <div style={{ width: 16, height: 16, borderRadius: 3, background: 'linear-gradient(135deg,#3b82f6,#60a5fa)' }} />
-            <span>リピート（ブルー）</span>
-          </div>
-        </div>
-
-        {/* 参加者カード（maker用） */}
-        {participants.filter(p => p.status !== 'cancelled').map(p => {
-          const shop = shops.find(s => s.id === p.shop_id)
-          const isFirst = p.is_first
-          const accentColor = isFirst ? '#f97316' : '#3b82f6'
-          const accentLight = isFirst ? 'rgba(249,115,22,0.1)' : 'rgba(59,130,246,0.1)'
-          const accentBorder = isFirst ? 'rgba(249,115,22,0.3)' : 'rgba(59,130,246,0.3)'
-
-          return (
-            <div key={p.id} style={{
-              background: '#111827',
-              borderRadius: 14,
-              marginBottom: 14,
-              overflow: 'hidden',
-              border: `1px solid ${accentBorder}`,
-              display: 'flex',
-            }}>
-              {/* ★ 左端カラーライン（初回=オレンジ / リピート=ブルー） */}
-              <div style={{ width: 6, flexShrink: 0, background: `linear-gradient(180deg, ${accentColor}, ${isFirst ? '#fb923c' : '#60a5fa'})` }} />
-
-              <div style={{ flex: 1, padding: '14px 16px' }}>
-
-                {/* 上段: 初回/リピートバッジ ＋ 氏名 */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                  {/* 大きなバッジ */}
-                  <div style={{
-                    flexShrink: 0,
-                    background: accentColor,
-                    borderRadius: 8,
-                    padding: '5px 12px',
-                    fontSize: 13,
-                    fontWeight: 900,
-                    color: '#fff',
-                    letterSpacing: '0.03em',
-                    lineHeight: 1,
-                  }}>
-                    {isFirst ? '初回' : 'リピート'}
-                  </div>
-                  <div>
-                    <span style={{ fontSize: 20, fontWeight: 900, color: '#f1f5f9' }}>{p.last_name} {p.first_name}</span>
-                    <span style={{ fontSize: 11, color: '#475569', marginLeft: 8 }}>{p.last_name_kana} {p.first_name_kana}</span>
-                  </div>
-                  {p.status === 'waiting' && (
-                    <div style={{ marginLeft: 'auto', fontSize: 11, color: '#fbbf24', fontWeight: 700, background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.3)', borderRadius: 6, padding: '3px 8px' }}>
-                      ⏳ 待ち{p.wait_no}番
-                    </div>
-                  )}
-                </div>
-
-                {/* ★ 担当販売者（最重要: 超大きく表示） */}
-                <div style={{
-                  background: accentLight,
-                  border: `1.5px solid ${accentBorder}`,
-                  borderRadius: 10,
-                  padding: '10px 14px',
-                  marginBottom: 10,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                }}>
-                  <div style={{ fontSize: 20 }}>🏪</div>
-                  <div>
-                    <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 700, marginBottom: 2 }}>担当販売者</div>
-                    <div style={{ fontSize: 22, fontWeight: 900, color: '#f1f5f9', lineHeight: 1 }}>{shop?.name || p.shop_id}</div>
-                  </div>
-                </div>
-
-                {/* サブ情報 */}
-                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' as const, fontSize: 11, color: '#64748b' }}>
-                  <span>{p.party ? '🍻 懇親会参加' : '懇親会不参加'}</span>
-                  {(p as any).prefecture && <span>📍 {(p as any).prefecture}</span>}
-                </div>
-
-                {/* 同伴者 */}
-                {p.companions?.length > 0 && (
-                  <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexWrap: 'wrap' as const, gap: 6 }}>
-                    {p.companions.map((c, i) => (
-                      <div key={i} style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 5,
-                        background: c.is_first ? 'rgba(249,115,22,0.1)' : 'rgba(59,130,246,0.1)',
-                        border: `1px solid ${c.is_first ? 'rgba(249,115,22,0.3)' : 'rgba(59,130,246,0.3)'}`,
-                        borderRadius: 6, padding: '4px 10px', fontSize: 11,
-                      }}>
-                        <span style={{ fontSize: 9, fontWeight: 800, color: c.is_first ? '#f97316' : '#60a5fa' }}>{c.is_first ? '初回' : 'リピート'}</span>
-                        <span style={{ color: '#cbd5e1', fontWeight: 600 }}>{c.last_name} {c.first_name}</span>
-                        {c.party && <span style={{ color: '#c084fc' }}>🍻</span>}
-                      </div>
-                    ))}
-                  </div>
-                )}
+        <div style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.07)', padding: '14px 20px', position: 'sticky', top: 0, zIndex: 10, backdropFilter: 'blur(12px)' }}>
+          <div style={{ maxWidth: 680, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg,#22c55e,#16a34a)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>🏭</div>
+              <div>
+                <div style={{ fontSize: 9, color: '#475569', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Maker View</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: '#f1f5f9' }}>来場者チェック</div>
               </div>
             </div>
-          )
-        })}
+            <button onClick={() => setLoggedIn(false)} style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '5px 12px', cursor: 'pointer' }}>ログアウト</button>
+          </div>
+        </div>
+
+        <div style={{ maxWidth: 680, margin: '0 auto', padding: '20px 16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 20 }}>
+            {[
+              { label: '参加確定', val: confirmedCount, color: '#22c55e', glow: 'rgba(34,197,94,0.3)', icon: '✅' },
+              { label: '初回', val: firstTimers + firstTimerCompanions, color: '#fb923c', glow: 'rgba(251,146,60,0.3)', icon: '🆕' },
+              { label: 'リピート', val: repeaters + repeaterCompanions, color: '#60a5fa', glow: 'rgba(96,165,250,0.3)', icon: '🔄' },
+              { label: '懇親会', val: partyCount, color: '#c084fc', glow: 'rgba(192,132,252,0.3)', icon: '🍻' },
+            ].map(s => (
+              <div key={s.label} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '12px 6px', textAlign: 'center', boxShadow: `0 0 16px ${s.glow}` }}>
+                <div style={{ fontSize: 13, marginBottom: 4 }}>{s.icon}</div>
+                <div style={{ fontSize: 26, fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.val}</div>
+                <div style={{ fontSize: 9, color: s.color, marginTop: 3, fontWeight: 700, opacity: 0.8 }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', gap: 20, marginBottom: 18, fontSize: 11 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+              <div style={{ width: 18, height: 18, borderRadius: 4, background: 'linear-gradient(135deg,#fb923c,#f97316)', boxShadow: '0 0 8px rgba(251,146,60,0.5)' }} />
+              <span style={{ color: '#fb923c', fontWeight: 700 }}>初回</span><span style={{ color: '#475569' }}>のお客様</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+              <div style={{ width: 18, height: 18, borderRadius: 4, background: 'linear-gradient(135deg,#3b82f6,#60a5fa)', boxShadow: '0 0 8px rgba(96,165,250,0.5)' }} />
+              <span style={{ color: '#60a5fa', fontWeight: 700 }}>リピート</span><span style={{ color: '#475569' }}>のお客様</span>
+            </div>
+          </div>
+
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '60px', color: '#22c55e', fontSize: 14 }}>読み込み中...</div>
+          ) : makerParticipants.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '60px', color: '#334155', fontSize: 14 }}>参加者がいません</div>
+          ) : (
+            makerParticipants.map((p) => {
+              const shop = shops.find(s => s.id === p.shop_id)
+              const isFirst = p.is_first
+              const C = isFirst
+                ? { main: '#fb923c', dark: '#c2410c', light: 'rgba(251,146,60,0.12)', border: 'rgba(251,146,60,0.35)', glow: 'rgba(251,146,60,0.2)', label: '初 回', stripe: '#f97316' }
+                : { main: '#60a5fa', dark: '#1d4ed8', light: 'rgba(96,165,250,0.12)', border: 'rgba(96,165,250,0.35)', glow: 'rgba(96,165,250,0.2)', label: 'リピート', stripe: '#3b82f6' }
+              return (
+                <div key={p.id} className="pcard" style={{ marginBottom: 16, borderRadius: 16, overflow: 'hidden', border: `1.5px solid ${C.border}`, boxShadow: `0 4px 24px ${C.glow}`, background: '#0d1424' }}>
+                  <div style={{ background: `linear-gradient(90deg, ${C.stripe}, ${C.dark})`, padding: '10px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ fontSize: 14, fontWeight: 900, color: '#fff', letterSpacing: '0.1em', background: 'rgba(0,0,0,0.25)', borderRadius: 6, padding: '3px 10px' }}>{C.label}</span>
+                      <span style={{ fontSize: 20, fontWeight: 900, color: '#fff' }}>{p.last_name} {p.first_name}</span>
+                      <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)' }}>{p.last_name_kana} {p.first_name_kana}</span>
+                    </div>
+                    {p.status === 'waiting' && (
+                      <div style={{ fontSize: 11, color: '#fef08a', fontWeight: 800, background: 'rgba(0,0,0,0.3)', borderRadius: 5, padding: '2px 8px' }}>⏳ 待ち{p.wait_no}番</div>
+                    )}
+                  </div>
+                  <div style={{ padding: '14px 18px' }}>
+                    <div style={{ background: C.light, border: `1.5px solid ${C.border}`, borderRadius: 12, padding: '12px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 14 }}>
+                      <div style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, background: `linear-gradient(135deg, ${C.stripe}, ${C.dark})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>🏪</div>
+                      <div>
+                        <div style={{ fontSize: 10, color: '#64748b', fontWeight: 700, letterSpacing: '0.12em', marginBottom: 3 }}>担当販売者</div>
+                        <div style={{ fontSize: 28, fontWeight: 900, color: '#f1f5f9', lineHeight: 1 }}>{shop?.name || p.shop_id}</div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' as const }}>
+                      {p.party && <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(192,132,252,0.12)', border: '1px solid rgba(192,132,252,0.3)', borderRadius: 7, padding: '4px 10px', fontSize: 11, color: '#c084fc', fontWeight: 700 }}>🍻 懇親会参加</div>}
+                      {(p as any).prefecture && <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 7, padding: '4px 10px', fontSize: 11, color: '#94a3b8' }}>📍 {(p as any).prefecture}</div>}
+                    </div>
+                    {p.companions?.length > 0 && (
+                      <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexWrap: 'wrap' as const, gap: 6 }}>
+                        <span style={{ fontSize: 10, color: '#475569', width: '100%', marginBottom: 2 }}>同伴者</span>
+                        {p.companions.map((c, i) => {
+                          const CC = c.is_first
+                            ? { main: '#fb923c', light: 'rgba(251,146,60,0.1)', border: 'rgba(251,146,60,0.3)', label: '初回' }
+                            : { main: '#60a5fa', light: 'rgba(96,165,250,0.1)', border: 'rgba(96,165,250,0.3)', label: 'リピート' }
+                          return (
+                            <div key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: CC.light, border: `1px solid ${CC.border}`, borderRadius: 7, padding: '5px 11px', fontSize: 12 }}>
+                              <span style={{ fontSize: 9, fontWeight: 900, color: CC.main, background: 'rgba(0,0,0,0.2)', borderRadius: 4, padding: '1px 5px' }}>{CC.label}</span>
+                              <span style={{ color: '#e2e8f0', fontWeight: 600 }}>{c.last_name} {c.first_name}</span>
+                              {c.party && <span style={{ color: '#c084fc' }}>🍻</span>}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })
+          )}
+        </div>
       </div>
-    </div>
-  )
+    )
+  }
 
   // ─── admin / agent / shop 共通ビュー ───
   return (
@@ -288,9 +264,7 @@ export default function StaffPage() {
         </div>
       </div>
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 18px' }}>
-        {actionMsg && (
-          <div style={{ background: '#f0fdf4', border: '1.5px solid #86efac', borderRadius: 10, padding: '12px 16px', marginBottom: 16, fontSize: 13, fontWeight: 700, color: '#1a3a2a' }}>{actionMsg}</div>
-        )}
+        {actionMsg && <div style={{ background: '#f0fdf4', border: '1.5px solid #86efac', borderRadius: 10, padding: '12px 16px', marginBottom: 16, fontSize: 13, fontWeight: 700, color: '#1a3a2a' }}>{actionMsg}</div>}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
           {[
             { label: '参加確定', count: confirmedCount, icon: '✅', color: '#2d7a4a', bg: '#f0fdf4', border: '#86efac' },
@@ -306,7 +280,8 @@ export default function StaffPage() {
         </div>
         <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' as const }}>
           {[{ key: 'all', label: 'すべて' }, { key: 'confirmed', label: '✅ 確定' }, { key: 'waiting', label: '⏳ 待ち' }, { key: 'cancelled', label: '🚫 キャンセル' }].map(f => (
-            <button key={f.key} onClick={() => setFilter(f.key as any)} style={{ padding: '7px 16px', borderRadius: 20, border: `1.5px solid ${filter === f.key ? '#2d7a4a' : '#dde8f5'}`, background: filter === f.key ? '#2d7a4a' : '#fff', color: filter === f.key ? '#fff' : '#6a8090', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+            <button key={f.key} onClick={() => setFilter(f.key as any)}
+              style={{ padding: '7px 16px', borderRadius: 20, border: `1.5px solid ${filter === f.key ? '#2d7a4a' : '#dde8f5'}`, background: filter === f.key ? '#2d7a4a' : '#fff', color: filter === f.key ? '#fff' : '#6a8090', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
               {f.label}
             </button>
           ))}
@@ -331,20 +306,20 @@ export default function StaffPage() {
                       </span>
                     </div>
                     <div style={{ fontSize: 11, color: '#6a8090', lineHeight: 1.8 }}>
-                      <span>📧 {p.email}　</span><span>📞 {p.phone}</span>
+                      <span>📧 {p.email} </span><span>📞 {p.phone}</span>
                     </div>
                     <div style={{ fontSize: 11, color: '#6a8090' }}>
-                      <span>🏪 {getShopName(p.shop_id)}　</span>
-                      <span>{p.is_first ? '🆕 初回' : '↩️ リピート'}　</span>
+                      <span>🏪 {getShopName(p.shop_id)} </span>
+                      <span>{p.is_first ? '🆕 初回' : '↩️ リピート'} </span>
                       <span>{p.party ? '🍻 懇親会参加' : '懇親会不参加'}</span>
-                      {p.companions?.length > 0 && <span>　👥 同伴者{p.companions.length}名</span>}
+                      {p.companions?.length > 0 && <span> 👥 同伴者{p.companions.length}名</span>}
                     </div>
                     {p.remarks && <div style={{ fontSize: 11, color: '#888', marginTop: 4 }}>💬 {p.remarks}</div>}
                     {p.companions?.length > 0 && (
                       <div style={{ marginTop: 8, paddingLeft: 12, borderLeft: '2px solid #e2e8f0' }}>
                         {p.companions.map((c, i) => (
                           <div key={i} style={{ fontSize: 11, color: '#6a8090', lineHeight: 1.7 }}>
-                            👤 {c.last_name} {c.first_name}　{c.is_first ? '🆕 初回' : '↩️ リピート'}{c.party ? '　🍻 懇親会参加' : ''}
+                            👤 {c.last_name} {c.first_name} {c.is_first ? '🆕 初回' : '↩️ リピート'}{c.party ? ' 🍻 懇親会参加' : ''}
                           </div>
                         ))}
                       </div>
@@ -353,10 +328,12 @@ export default function StaffPage() {
                   {(userInfo?.role === 'admin' || userInfo?.role === 'agent') && (
                     <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 6, minWidth: 120 }}>
                       {p.status === 'waiting' && (
-                        <button onClick={() => setConfirmDialog({ type: 'promote', participant: p })} style={{ padding: '8px 12px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#1a3a2a,#2d7a4a)', color: '#fff', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>✅ 確定に昇格</button>
+                        <button onClick={() => setConfirmDialog({ type: 'promote', participant: p })}
+                          style={{ padding: '8px 12px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#1a3a2a,#2d7a4a)', color: '#fff', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>✅ 確定に昇格</button>
                       )}
                       {p.status !== 'cancelled' && (
-                        <button onClick={() => setConfirmDialog({ type: 'cancel', participant: p })} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #fca5a5', background: '#fff5f5', color: '#ef4444', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>🚫 キャンセル</button>
+                        <button onClick={() => setConfirmDialog({ type: 'cancel', participant: p })}
+                          style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #fca5a5', background: '#fff5f5', color: '#ef4444', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>🚫 キャンセル</button>
                       )}
                     </div>
                   )}
@@ -377,7 +354,8 @@ export default function StaffPage() {
               {confirmDialog.participant.last_name} {confirmDialog.participant.first_name}さん
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => setConfirmDialog(null)} style={{ flex: 1, padding: '11px', borderRadius: 9, border: '1.5px solid #dde8f5', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#6a8090', fontWeight: 700 }}>戻る</button>
+              <button onClick={() => setConfirmDialog(null)}
+                style={{ flex: 1, padding: '11px', borderRadius: 9, border: '1.5px solid #dde8f5', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#6a8090', fontWeight: 700 }}>戻る</button>
               <button onClick={() => confirmDialog.type === 'promote' ? handlePromote(confirmDialog.participant) : handleCancel(confirmDialog.participant)}
                 style={{ flex: 1, padding: '11px', borderRadius: 9, border: 'none', fontSize: 13, fontWeight: 800, cursor: 'pointer', background: confirmDialog.type === 'promote' ? 'linear-gradient(135deg,#1a3a2a,#2d7a4a)' : '#ef4444', color: '#fff' }}>
                 {confirmDialog.type === 'promote' ? '昇格する' : 'キャンセルする'}
