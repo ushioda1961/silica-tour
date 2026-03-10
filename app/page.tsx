@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '../lib/supabase'
-import RegisterForm from './components/RegisterForm'
 
 type Event = {
   id: string
@@ -16,8 +16,8 @@ type Event = {
 }
 
 export default function Home() {
+  const router = useRouter()
   const [events, setEvents] = useState<Event[]>([])
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [counts, setCounts] = useState<Record<string, number>>({})
 
   useEffect(() => {
@@ -29,7 +29,6 @@ export default function Home() {
         .order('date', { ascending: true })
       if (evts) setEvents(evts)
 
-      // 各回の確定参加者数を取得
       const { data: parts } = await supabase
         .from('participants')
         .select('event_id, status')
@@ -49,11 +48,7 @@ export default function Home() {
     const m = d.getMonth() + 1
     const day = d.getDate()
     const dow = days[d.getDay()]
-    return { month: m, day, dow, full: `${m}月${day}日（${dow}）` }
-  }
-
-  if (selectedEvent) {
-    return <RegisterForm event={selectedEvent} onBack={() => setSelectedEvent(null)} />
+    return `${m}月${day}日（${dow}）`
   }
 
   return (
@@ -69,7 +64,7 @@ export default function Home() {
       {/* イベントカード一覧 */}
       <div style={{ width: '100%', maxWidth: 560, display: 'flex', flexDirection: 'column' as const, gap: 16, marginBottom: 48 }}>
         {events.map((evt, i) => {
-          const { month, day, dow, full } = formatDate(evt.date)
+          const full = formatDate(evt.date)
           const confirmed = counts[evt.id] || 0
           const remaining = evt.capacity - confirmed
           const pct = Math.round((confirmed / evt.capacity) * 100)
@@ -87,18 +82,16 @@ export default function Home() {
           return (
             <div
               key={evt.id}
-              onClick={() => !isFull && setSelectedEvent(evt)}
-              style={{ background: '#111827', borderRadius: 16, border: `1.5px solid ${isFull ? 'rgba(255,255,255,0.06)' : C.main + '60'}`, boxShadow: isFull ? 'none' : `0 4px 24px ${C.glow}`, cursor: isFull ? 'not-allowed' : 'pointer', overflow: 'hidden', opacity: isFull ? 0.6 : 1, transition: 'transform 0.15s', }}
+              onClick={() => !isFull && router.push(`/register?eventId=${evt.id}`)}
+              style={{ background: '#111827', borderRadius: 16, border: `1.5px solid ${isFull ? 'rgba(255,255,255,0.06)' : C.main + '60'}`, boxShadow: isFull ? 'none' : `0 4px 24px ${C.glow}`, cursor: isFull ? 'not-allowed' : 'pointer', overflow: 'hidden', opacity: isFull ? 0.6 : 1, transition: 'transform 0.15s' }}
               onMouseEnter={e => { if (!isFull) (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)' }}
             >
-              {/* カラーバー */}
               <div style={{ height: 4, background: isFull ? '#334155' : `linear-gradient(90deg, ${C.main}, ${C.dark})` }} />
-
               <div style={{ padding: '20px 24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <span style={{ fontSize: 11, fontWeight: 900, color: C.main, background: C.main + '20', border: `1px solid ${C.main}40`, borderRadius: 6, padding: '3px 10px', letterSpacing: '0.05em' }}>{labels[i]}</span>
+                    <span style={{ fontSize: 11, fontWeight: 900, color: C.main, background: C.main + '20', border: `1px solid ${C.main}40`, borderRadius: 6, padding: '3px 10px' }}>{labels[i]}</span>
                     <span style={{ fontSize: 22, fontWeight: 900, color: '#f1f5f9' }}>{full}</span>
                   </div>
                   {isFull
@@ -108,22 +101,16 @@ export default function Home() {
                     : <span style={{ fontSize: 11, color: '#64748b' }}>残り{remaining}名</span>
                   }
                 </div>
-
                 <div style={{ display: 'flex', gap: 20, marginBottom: 14, color: '#94a3b8', fontSize: 13 }}>
                   <span>🕐 {evt.time_start}〜{evt.time_end}</span>
                   <span>👥 定員{evt.capacity}名</span>
                 </div>
-
-                {/* プログレスバー */}
                 <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 4, height: 6, marginBottom: 14, overflow: 'hidden' }}>
                   <div style={{ height: '100%', width: pct + '%', background: isFull ? '#ef4444' : `linear-gradient(90deg,${C.main},${C.dark})`, borderRadius: 4, transition: 'width 0.5s' }} />
                 </div>
-
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <span style={{ fontSize: 12, color: '#475569' }}>🍻 懇親会あり（任意参加）</span>
-                  {!isFull && (
-                    <span style={{ fontSize: 13, fontWeight: 900, color: C.main }}>申込む →</span>
-                  )}
+                  {!isFull && <span style={{ fontSize: 13, fontWeight: 900, color: C.main }}>申込む →</span>}
                 </div>
               </div>
             </div>
@@ -131,9 +118,8 @@ export default function Home() {
         })}
       </div>
 
-      {/* フッター注記 */}
       <div style={{ color: '#334155', fontSize: 11, textAlign: 'center', lineHeight: 1.8 }}>
-        <p style={{ margin: 0 }}>参加費：無料　／　懇親会：3,000円（任意）</p>
+        <p style={{ margin: 0 }}>参加費：無料 ／ 懇親会：3,000円（任意）</p>
         <p style={{ margin: 0 }}>会場：愛知県一宮市内（詳細は担当販売者にお問い合わせください）</p>
       </div>
     </div>
