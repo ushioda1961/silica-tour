@@ -531,6 +531,7 @@ export default function StaffPage() {
                       {p.status !== 'cancelled' && (
                         <button onClick={() => setConfirmDialog({ type: 'cancel', participant: p })}
                           style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #fca5a5', background: '#fff5f5', color: '#ef4444', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>🚫 キャンセル</button>
+                      )}
                       {userInfo?.role === 'admin' && (
                         <button onClick={() => setConfirmDialog({ type: 'delete', participant: p })}
                           style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #6b7280', background: '#1f2937', color: '#9ca3af', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
