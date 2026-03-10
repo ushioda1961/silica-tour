@@ -129,6 +129,131 @@ export default function StaffPage() {
     </div>
   )
 
+  // ─── PDF名簿ダウンロード ───
+  const downloadPDF = () => {
+    const script = document.createElement('script')
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
+    script.onload = () => {
+      const { jsPDF } = (window as any).jspdf
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+      const pageW = 210
+      const margin = 14
+      let y = 20
+
+      // ── ヘッダー ──
+      doc.setFillColor(30, 80, 50)
+      doc.rect(0, 0, pageW, 28, 'F')
+      doc.setTextColor(255, 255, 255)
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(14)
+      doc.text('Factory Tour - Attendance List', margin, 11)
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'normal')
+      doc.text('2026.05.23 (Sat)  13:00-16:00', margin, 18)
+      doc.text('Silica Factory Tour', margin, 23)
+      doc.text(`Total: ${confirmedCount} attendees  (First-time: ${firstTimers + firstTimerCompanions}  Repeat: ${repeaters + repeaterCompanions})`, pageW - margin, 23, { align: 'right' })
+      y = 36
+
+      // ── 代理店ごとにグループ化 ──
+      const agentGroups: Record<string, typeof shops> = {}
+      shops.forEach(shop => {
+        const agent = shop.agent_name || 'Unknown'
+        if (!agentGroups[agent]) agentGroups[agent] = []
+        agentGroups[agent].push(shop)
+      })
+
+      let rowNum = 1
+      Object.entries(agentGroups).forEach(([agentName, agentShops]) => {
+        // 代理店ヘッダー
+        if (y > 270) { doc.addPage(); y = 20 }
+        doc.setFillColor(220, 235, 225)
+        doc.rect(margin, y, pageW - margin * 2, 7, 'F')
+        doc.setTextColor(30, 80, 50)
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(10)
+        doc.text(`[Agent]  ${agentName}`, margin + 2, y + 5)
+        y += 10
+
+        agentShops.forEach(shop => {
+          const shopParticipants = participants.filter(p => p.shop_id === shop.id && p.status === 'confirmed')
+          if (shopParticipants.length === 0) return
+
+          // 販売者ヘッダー
+          if (y > 270) { doc.addPage(); y = 20 }
+          doc.setFillColor(245, 250, 247)
+          doc.rect(margin + 4, y, pageW - margin * 2 - 4, 6, 'F')
+          doc.setTextColor(50, 100, 70)
+          doc.setFont('helvetica', 'bold')
+          doc.setFontSize(9)
+          doc.text(`  Shop:  ${shop.name}`, margin + 6, y + 4.5)
+          y += 8
+
+          shopParticipants.forEach(p => {
+            // 本人行
+            if (y > 275) { doc.addPage(); y = 20 }
+            const isFirst = p.is_first
+            doc.setTextColor(isFirst ? 180 : 50, isFirst ? 80 : 100, isFirst ? 0 : 180)
+            doc.setFont('helvetica', 'bold')
+            doc.setFontSize(8)
+            const badge = isFirst ? '[NEW]' : '[RPT]'
+            doc.text(`${String(rowNum).padStart(3, ' ')}. ${badge}  ${p.last_name} ${p.first_name}  (${p.last_name_kana} ${p.first_name_kana})`, margin + 8, y)
+            // チェックボックス
+            doc.setDrawColor(150, 150, 150)
+            doc.setLineWidth(0.3)
+            doc.rect(pageW - margin - 18, y - 3.5, 4, 4)
+            doc.setTextColor(100, 100, 100)
+            doc.setFont('helvetica', 'normal')
+            doc.setFontSize(7)
+            doc.text('Arrived', pageW - margin - 13, y)
+            if (p.party) {
+              doc.setTextColor(120, 60, 160)
+              doc.text('Banquet', pageW - margin - 28, y)
+            }
+            y += 6
+            rowNum++
+
+            // 同伴者行
+            p.companions?.forEach(c => {
+              if (y > 275) { doc.addPage(); y = 20 }
+              const cIsFirst = c.is_first
+              doc.setTextColor(cIsFirst ? 180 : 50, cIsFirst ? 80 : 100, cIsFirst ? 0 : 180)
+              doc.setFont('helvetica', 'bold')
+              doc.setFontSize(7.5)
+              const cBadge = cIsFirst ? '[NEW]' : '[RPT]'
+              doc.text(`${String(rowNum).padStart(3, ' ')}.   + ${cBadge}  ${c.last_name} ${c.first_name}  (companion)`, margin + 12, y)
+              doc.setDrawColor(150, 150, 150)
+              doc.rect(pageW - margin - 18, y - 3.5, 4, 4)
+              doc.setTextColor(100, 100, 100)
+              doc.setFont('helvetica', 'normal')
+              doc.setFontSize(7)
+              doc.text('Arrived', pageW - margin - 13, y)
+              if (c.party) {
+                doc.setTextColor(120, 60, 160)
+                doc.text('Banquet', pageW - margin - 28, y)
+              }
+              y += 5.5
+              rowNum++
+            })
+          })
+          y += 3
+        })
+        y += 4
+      })
+
+      // フッター
+      const pageCount = (doc as any).internal.getNumberOfPages()
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i)
+        doc.setTextColor(150, 150, 150)
+        doc.setFontSize(7)
+        doc.text(`Page ${i} / ${pageCount}  —  Generated: ${new Date().toLocaleString('ja-JP')}`, pageW / 2, 293, { align: 'center' })
+      }
+
+      doc.save('silica-tour-attendance.pdf')
+    }
+    document.head.appendChild(script)
+  }
+
   // ─── メーカービュー ───
   if (userInfo?.role === 'maker') {
     const makerParticipants = participants.filter(p => p.status !== 'cancelled')
@@ -152,6 +277,7 @@ export default function StaffPage() {
                 <div style={{ fontSize: 15, fontWeight: 800, color: '#f1f5f9' }}>来場者チェック</div>
               </div>
             </div>
+            <button onClick={downloadPDF} style={{ fontSize: 11, color: '#fff', background: 'linear-gradient(135deg,#16a34a,#22c55e)', border: 'none', borderRadius: 6, padding: '6px 14px', cursor: 'pointer', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 4 }}>📄 名簿PDF</button>
             <button onClick={() => setLoggedIn(false)} style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '5px 12px', cursor: 'pointer' }}>ログアウト</button>
           </div>
         </div>
