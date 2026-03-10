@@ -183,64 +183,91 @@ if (!loggedIn) return (
   )
 
   if (userInfo?.role === 'maker') return (
-    <div style={{ fontFamily: "'Hiragino Kaku Gothic ProN','Meiryo',sans-serif", background: '#f0f4f8', minHeight: '100vh' }}>
-      <div style={{ background: 'linear-gradient(135deg,#1a3a2a,#2d5a3a)', padding: '0 24px' }}>
-        <div style={{ maxWidth: 900, margin: '0 auto', padding: '14px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <div style={{ fontFamily: "'Hiragino Kaku Gothic ProN','Meiryo',sans-serif", background: '#0f172a', minHeight: '100vh' }}>
+      {/* ヘッダー */}
+      <div style={{ background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '14px 20px' }}>
+        <div style={{ maxWidth: 700, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ fontSize: 20 }}>🏭</div>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg,#22c55e,#16a34a)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>🏭</div>
             <div>
-              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)' }}>MAKER VIEW</div>
-              <div style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>参加者一覧（メーカー用）</div>
+              <div style={{ fontSize: 9, color: '#475569', letterSpacing: '0.15em' }}>MAKER VIEW</div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: '#f1f5f9' }}>来場者チェック</div>
             </div>
           </div>
-          <button onClick={() => setLoggedIn(false)} style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 6, padding: '5px 12px', cursor: 'pointer' }}>ログアウト</button>
+          <button onClick={() => setLoggedIn(false)} style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 6, padding: '5px 12px', cursor: 'pointer' }}>ログアウト</button>
         </div>
       </div>
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 18px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 20 }}>
+
+      <div style={{ maxWidth: 700, margin: '0 auto', padding: '20px 16px' }}>
+        {/* サマリー */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 20 }}>
           {[
-            { label: '参加確定', count: confirmedCount, icon: '✅', color: '#2d7a4a', bg: '#f0fdf4', border: '#86efac' },
-            { label: 'キャンセル待ち', count: waitingCount, icon: '⏳', color: '#d97706', bg: '#fffbeb', border: '#fcd34d' },
-            { label: 'キャンセル', count: cancelledCount, icon: '🚫', color: '#ef4444', bg: '#fef2f2', border: '#fca5a5' },
+            { label: '参加確定', val: confirmedCount, color: '#22c55e', bg: 'rgba(34,197,94,0.1)', border: 'rgba(34,197,94,0.25)' },
+            { label: '初回', val: firstTimers + firstTimerCompanions, color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.25)' },
+            { label: 'リピート', val: repeaters + repeaterCompanions, color: '#60a5fa', bg: 'rgba(96,165,250,0.1)', border: 'rgba(96,165,250,0.25)' },
+            { label: '懇親会', val: partyCount, color: '#c084fc', bg: 'rgba(192,132,252,0.1)', border: 'rgba(192,132,252,0.25)' },
           ].map(s => (
-            <div key={s.label} style={{ background: s.bg, border: `1.5px solid ${s.border}`, borderRadius: 12, padding: '14px 16px', textAlign: 'center' }}>
-              <div style={{ fontSize: 22 }}>{s.icon}</div>
-              <div style={{ fontSize: 28, fontWeight: 900, color: s.color }}>{s.count}<span style={{ fontSize: 11, color: '#aaa', marginLeft: 2 }}>名</span></div>
-              <div style={{ fontSize: 11, color: s.color, fontWeight: 700 }}>{s.label}</div>
+            <div key={s.label} style={{ background: s.bg, border: `1px solid ${s.border}`, borderRadius: 10, padding: '10px 6px', textAlign: 'center' }}>
+              <div style={{ fontSize: 20, fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.val}</div>
+              <div style={{ fontSize: 9, color: s.color, marginTop: 3, fontWeight: 700 }}>{s.label}</div>
             </div>
           ))}
         </div>
-        <div style={{ background: '#fff', borderRadius: 13, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-            <thead>
-              <tr style={{ background: '#1a3a2a', color: '#fff' }}>
-                <th style={{ padding: '10px 12px', textAlign: 'left' }}>氏名</th>
-                <th style={{ padding: '10px 12px', textAlign: 'left' }}>都道府県</th>
-                <th style={{ padding: '10px 12px', textAlign: 'left' }}>販売店</th>
-                <th style={{ padding: '10px 12px', textAlign: 'left' }}>代理店</th>
-                <th style={{ padding: '10px 12px', textAlign: 'left' }}>区分</th>
-                <th style={{ padding: '10px 12px', textAlign: 'left' }}>懇親会</th>
-                <th style={{ padding: '10px 12px', textAlign: 'left' }}>状態</th>
-              </tr>
-            </thead>
-            <tbody>
-              {participants.filter(p => p.status !== 'cancelled').map((p, i) => {
-                const shop = shops.find(s => s.id === p.shop_id)
-                return (
-                  <tr key={p.id} style={{ borderBottom: '1px solid #f0f4f8', background: i % 2 === 0 ? '#fff' : '#f8fafc' }}>
-                    <td style={{ padding: '10px 12px', fontWeight: 700 }}>{p.last_name} {p.first_name}<br/><span style={{ fontSize: 10, color: '#aaa', fontWeight: 400 }}>{p.last_name_kana} {p.first_name_kana}</span></td>
-                    <td style={{ padding: '10px 12px', color: '#6a8090' }}>{(p as any).prefecture || '-'}</td>
-                    <td style={{ padding: '10px 12px', color: '#6a8090' }}>{shop?.name || p.shop_id}</td>
-                    <td style={{ padding: '10px 12px', color: '#6a8090' }}>{shop?.agent_name || '-'}</td>
-                    <td style={{ padding: '10px 12px' }}>{p.is_first ? '🆕 初回' : '↩️ リピート'}</td>
-                    <td style={{ padding: '10px 12px' }}>{p.party ? '🍻 参加' : '-'}</td>
-                    <td style={{ padding: '10px 12px' }}><span style={{ fontSize: 10, fontWeight: 800, color: p.status === 'confirmed' ? '#2d7a4a' : '#d97706', background: p.status === 'confirmed' ? '#f0fdf4' : '#fffbeb', border: `1px solid ${p.status === 'confirmed' ? '#86efac' : '#fcd34d'}`, borderRadius: 5, padding: '2px 7px' }}>{p.status === 'confirmed' ? '確定' : '待ち'}</span></td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+
+        {/* 参加者カード */}
+        {participants.filter(p => p.status !== 'cancelled').map(p => {
+          const shop = shops.find(s => s.id === p.shop_id)
+          const isFirst = p.is_first
+          return (
+            <div key={p.id} style={{ background: 'rgba(255,255,255,0.05)', border: `2px solid ${isFirst ? 'rgba(245,158,11,0.5)' : 'rgba(96,165,250,0.4)'}`, borderRadius: 14, padding: '16px', marginBottom: 12, position: 'relative', overflow: 'hidden' }}>
+              {/* 初回/リピート 大バッジ */}
+              <div style={{ position: 'absolute', top: 0, right: 0, padding: '6px 14px', borderRadius: '0 12px 0 12px', background: isFirst ? 'rgba(245,158,11,0.9)' : 'rgba(96,165,250,0.9)', fontSize: 11, fontWeight: 900, color: '#fff', letterSpacing: '0.05em' }}>
+                {isFirst ? '🆕 初回' : '↩️ リピート'}
+              </div>
+
+              <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                {/* 左: 初回/リピートアイコン大 */}
+                <div style={{ width: 52, height: 52, borderRadius: 14, flexShrink: 0, background: isFirst ? 'rgba(245,158,11,0.15)' : 'rgba(96,165,250,0.15)', border: `2px solid ${isFirst ? 'rgba(245,158,11,0.5)' : 'rgba(96,165,250,0.4)'}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+                  <div style={{ fontSize: 22 }}>{isFirst ? '🆕' : '↩️'}</div>
+                </div>
+
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  {/* 氏名 */}
+                  <div style={{ fontSize: 18, fontWeight: 900, color: '#f1f5f9', marginBottom: 2 }}>
+                    {p.last_name} {p.first_name}
+                    <span style={{ fontSize: 11, color: '#64748b', fontWeight: 400, marginLeft: 8 }}>{p.last_name_kana} {p.first_name_kana}</span>
+                  </div>
+
+                  {/* 担当販売者 — 最重要情報を大きく */}
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 8, padding: '4px 10px', marginBottom: 8 }}>
+                    <span style={{ fontSize: 10, color: '#4ade80', fontWeight: 700 }}>担当販売者</span>
+                    <span style={{ fontSize: 14, fontWeight: 900, color: '#22c55e' }}>{shop?.name || p.shop_id}</span>
+                  </div>
+
+                  {/* サブ情報 */}
+                  <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: 11, color: '#64748b' }}>
+                    {(p as any).prefecture && <span>📍 {(p as any).prefecture}</span>}
+                    <span>{p.party ? '🍻 懇親会参加' : '懇親会不参加'}</span>
+                    {p.status === 'waiting' && <span style={{ color: '#f59e0b', fontWeight: 700 }}>⏳ キャンセル待ち {p.wait_no}番</span>}
+                  </div>
+
+                  {/* 同伴者 */}
+                  {p.companions?.length > 0 && (
+                    <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                      {p.companions.map((c, i) => (
+                        <div key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: c.is_first ? 'rgba(245,158,11,0.08)' : 'rgba(96,165,250,0.08)', border: `1px solid ${c.is_first ? 'rgba(245,158,11,0.3)' : 'rgba(96,165,250,0.3)'}`, borderRadius: 6, padding: '3px 8px', marginRight: 6, marginBottom: 4, fontSize: 11 }}>
+                          <span>{c.is_first ? '🆕' : '↩️'}</span>
+                          <span style={{ color: '#cbd5e1', fontWeight: 600 }}>{c.last_name} {c.first_name}</span>
+                          {c.party && <span style={{ color: '#c084fc' }}>🍻</span>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
