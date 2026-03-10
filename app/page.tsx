@@ -38,7 +38,7 @@ export default function Home() {
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const [form, setForm] = useState({
-    lastName: '', firstName: '', lastNameKana: '', firstNameKana: '', prefecture: '', userType: 'customer', prefecture: '',
+    lastName: '', firstName: '', lastNameKana: '', firstNameKana: '', prefecture: '', userType: 'customer',
     email: '', emailConfirm: '', phone: '', shopId: '',
     isFirst: null as boolean | null, party: null as boolean | null, remarks: '',
   })
