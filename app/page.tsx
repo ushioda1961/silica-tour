@@ -15,19 +15,6 @@ const EVENT = {
   party: { title: "見学会後 懇親会", fee: 3000, time: "17:00〜19:00" },
 }
 
-const shops = [
-  { id: "S01", name: "札幌中央販売店" },
-  { id: "S02", name: "仙台北販売店" },
-  { id: "S03", name: "青森販売店" },
-  { id: "S04", name: "東京新宿販売店" },
-  { id: "S05", name: "横浜南販売店" },
-  { id: "S06", name: "埼玉販売店" },
-  { id: "S07", name: "大阪梅田販売店" },
-  { id: "S08", name: "名古屋中央販売店" },
-  { id: "S09", name: "福岡博多販売店" },
-  { id: "S10", name: "広島販売店" },
-]
-
 export default function Home() {
   const [step, setStep] = useState(0)
   const [currentCount, setCurrentCount] = useState(0)
@@ -36,6 +23,7 @@ export default function Home() {
   const [submitted, setSubmitted] = useState<string | null>(null)
   const [agreed, setAgreed] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [shops, setShops] = useState<{ id: string; name: string }[]>([])
 
   const [form, setForm] = useState({
     lastName: '', firstName: '', lastNameKana: '', firstNameKana: '', prefecture: '', userType: 'customer',
@@ -44,6 +32,20 @@ export default function Home() {
   })
 
   const [companions, setCompanions] = useState<any[]>([])
+
+  // 販売店一覧をSupabaseから取得
+  useEffect(() => {
+    const fetchShops = async () => {
+      const { data, error } = await supabase
+        .from('shops')
+        .select('id, name')
+        .order('id')
+      if (!error && data) {
+        setShops(data)
+      }
+    }
+    fetchShops()
+  }, [])
 
   // 現在の参加人数をSupabaseから取得
   useEffect(() => {
