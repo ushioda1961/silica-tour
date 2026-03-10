@@ -196,6 +196,8 @@ export default function StaffPage() {
                 : { main: '#60a5fa', dark: '#1d4ed8', light: 'rgba(96,165,250,0.12)', border: 'rgba(96,165,250,0.35)', glow: 'rgba(96,165,250,0.2)', label: 'リピート', stripe: '#3b82f6' }
               return (
                 <div key={p.id} className="pcard" style={{ marginBottom: 16, borderRadius: 16, overflow: 'hidden', border: `1.5px solid ${C.border}`, boxShadow: `0 4px 24px ${C.glow}`, background: '#0d1424' }}>
+
+                  {/* トップバー: 初回/リピート + 氏名 */}
                   <div style={{ background: `linear-gradient(90deg, ${C.stripe}, ${C.dark})`, padding: '10px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <span style={{ fontSize: 14, fontWeight: 900, color: '#fff', letterSpacing: '0.1em', background: 'rgba(0,0,0,0.25)', borderRadius: 6, padding: '3px 10px' }}>{C.label}</span>
@@ -206,18 +208,52 @@ export default function StaffPage() {
                       <div style={{ fontSize: 11, color: '#fef08a', fontWeight: 800, background: 'rgba(0,0,0,0.3)', borderRadius: 5, padding: '2px 8px' }}>⏳ 待ち{p.wait_no}番</div>
                     )}
                   </div>
+
+                  {/* ボディ */}
                   <div style={{ padding: '14px 18px' }}>
-                    <div style={{ background: C.light, border: `1.5px solid ${C.border}`, borderRadius: 12, padding: '12px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 14 }}>
-                      <div style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, background: `linear-gradient(135deg, ${C.stripe}, ${C.dark})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>🏪</div>
-                      <div>
-                        <div style={{ fontSize: 10, color: '#64748b', fontWeight: 700, letterSpacing: '0.12em', marginBottom: 3 }}>担当販売者</div>
-                        <div style={{ fontSize: 28, fontWeight: 900, color: '#f1f5f9', lineHeight: 1 }}>{shop?.name || p.shop_id}</div>
+
+                    {/* ★★★ 代理店→販売者→お客様 3階層チェーン ★★★ */}
+                    <div style={{ display: 'flex', alignItems: 'stretch', gap: 0, marginBottom: 12, borderRadius: 12, overflow: 'hidden', border: `1px solid ${C.border}` }}>
+
+                      {/* 代理店 */}
+                      <div style={{ flex: 1, background: 'rgba(255,255,255,0.04)', padding: '10px 12px', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                        <div style={{ fontSize: 16 }}>🏢</div>
+                        <div style={{ fontSize: 9, color: '#64748b', fontWeight: 700, letterSpacing: '0.1em' }}>代理店</div>
+                        <div style={{ fontSize: 14, fontWeight: 900, color: '#e2e8f0', textAlign: 'center', lineHeight: 1.2 }}>{shop?.agent_name || '—'}</div>
+                      </div>
+
+                      {/* 矢印1 */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, background: 'rgba(255,255,255,0.02)', flexShrink: 0 }}>
+                        <div style={{ fontSize: 16, color: C.main, opacity: 0.7 }}>›</div>
+                      </div>
+
+                      {/* 販売者 */}
+                      <div style={{ flex: 1, background: C.light, padding: '10px 12px', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', gap: 4, borderLeft: `1px solid ${C.border}`, borderRight: `1px solid ${C.border}` }}>
+                        <div style={{ fontSize: 16 }}>🏪</div>
+                        <div style={{ fontSize: 9, color: C.main, fontWeight: 700, letterSpacing: '0.1em' }}>担当販売者</div>
+                        <div style={{ fontSize: 16, fontWeight: 900, color: '#f1f5f9', textAlign: 'center', lineHeight: 1.2 }}>{shop?.name || p.shop_id}</div>
+                      </div>
+
+                      {/* 矢印2 */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, background: 'rgba(255,255,255,0.02)', flexShrink: 0 }}>
+                        <div style={{ fontSize: 16, color: C.main, opacity: 0.7 }}>›</div>
+                      </div>
+
+                      {/* お客様 */}
+                      <div style={{ flex: 1, background: 'rgba(255,255,255,0.04)', padding: '10px 12px', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                        <div style={{ fontSize: 16 }}>👤</div>
+                        <div style={{ fontSize: 9, color: '#64748b', fontWeight: 700, letterSpacing: '0.1em' }}>お客様</div>
+                        <div style={{ fontSize: 14, fontWeight: 900, color: '#e2e8f0', textAlign: 'center', lineHeight: 1.2 }}>{p.last_name} {p.first_name}</div>
                       </div>
                     </div>
+
+                    {/* サブ情報 */}
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' as const }}>
                       {p.party && <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(192,132,252,0.12)', border: '1px solid rgba(192,132,252,0.3)', borderRadius: 7, padding: '4px 10px', fontSize: 11, color: '#c084fc', fontWeight: 700 }}>🍻 懇親会参加</div>}
                       {(p as any).prefecture && <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 7, padding: '4px 10px', fontSize: 11, color: '#94a3b8' }}>📍 {(p as any).prefecture}</div>}
                     </div>
+
+                    {/* 同伴者 */}
                     {p.companions?.length > 0 && (
                       <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexWrap: 'wrap' as const, gap: 6 }}>
                         <span style={{ fontSize: 10, color: '#475569', width: '100%', marginBottom: 2 }}>同伴者</span>
@@ -245,6 +281,7 @@ export default function StaffPage() {
     )
   }
 
+  
   // ─── admin / agent / shop 共通ビュー ───
   return (
     <div style={{ fontFamily: "'Hiragino Kaku Gothic ProN','Meiryo',sans-serif", background: '#f0f4f8', minHeight: '100vh' }}>
