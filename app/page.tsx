@@ -38,7 +38,7 @@ export default function Home() {
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const [form, setForm] = useState({
-    lastName: '', firstName: '', lastNameKana: '', firstNameKana: '', prefecture: '',
+    lastName: '', firstName: '', lastNameKana: '', firstNameKana: '', prefecture: '', userType: 'customer', prefecture: '',
     email: '', emailConfirm: '', phone: '', shopId: '',
     isFirst: null as boolean | null, party: null as boolean | null, remarks: '',
   })
@@ -133,6 +133,7 @@ export default function Home() {
           status: (isFull || willWait) ? 'waiting' : 'confirmed',
           wait_no: waitNo,
           prefecture: form.prefecture,
+          user_type: form.userType,
           remarks: form.remarks,
         })
         .select()
@@ -412,6 +413,20 @@ export default function Home() {
             )}
 
            <div style={{ background: '#fff', borderRadius: 12, padding: '16px 20px', marginBottom: 12 }}>
+                <Lbl>参加区分</Lbl>
+                <div style={{ display: 'flex', gap: 12, marginBottom: 4 }}>
+                  {[{ value: 'customer', label: '👤 一般のお客様', desc: '販売者のお客様' }, { value: 'shop', label: '🏪 販売者', desc: '販売店担当者' }].map(opt => (
+                    <label key={opt.value} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderRadius: 10, border: `2px solid ${form.userType === opt.value ? '#2d7a4a' : '#e0e0e0'}`, background: form.userType === opt.value ? '#f0fdf4' : '#fafafa', cursor: 'pointer' }}>
+                      <input type="radio" name="userType" value={opt.value} checked={form.userType === opt.value} onChange={e => setForm({ ...form, userType: e.target.value })} style={{ accentColor: '#2d7a4a' }} />
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: 13 }}>{opt.label}</div>
+                        <div style={{ fontSize: 11, color: '#888' }}>{opt.desc}</div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div style={{ background: '#fff', borderRadius: 12, padding: '16px 20px', marginBottom: 12 }}>
                 <Lbl>都道府県</Lbl>
                 <select value={form.prefecture} onChange={e => setForm({ ...form, prefecture: e.target.value })} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1.5px solid #d4eadc', fontSize: 14, background: '#fff' }}>
                   <option value="">選択してください</option>
