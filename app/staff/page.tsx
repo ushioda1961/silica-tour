@@ -6,7 +6,6 @@ type Role = 'admin' | 'agent' | 'shop' | 'maker'
 type UserInfo = { login_id: string; role: Role; shop_id: string | null }
 type Participant = {
   id: string; last_name: string; first_name: string
-  last_name_kana: string; first_name_kana: string
   email: string; phone: string; shop_id: string
   is_first: boolean; party: boolean
   status: 'confirmed' | 'waiting' | 'cancelled'
@@ -76,6 +75,15 @@ export default function StaffPage() {
     const { error } = await supabase.from('participants').update({ status: 'confirmed', wait_no: null }).eq('id', p.id)
     if (!error) { setActionMsg(`✅ ${p.last_name} ${p.first_name}さんを確定に昇格しました`); fetchData(userInfo!) }
     setConfirmDialog(null); setTimeout(() => setActionMsg(''), 3000)
+  }
+
+  const handleDelete = async (p: Participant) => {
+    await supabase.from('companions').delete().eq('participant_id', p.id)
+    await supabase.from('participants').delete().eq('id', p.id)
+    setParticipants(prev => prev.filter(x => x.id !== p.id))
+    setConfirmDialog(null)
+    setActionMsg(p.last_name + p.first_name + ' さんのデータを削除しました')
+    setTimeout(() => setActionMsg(''), 3000)
   }
 
   const handleCancel = async (p: Participant) => {
@@ -523,6 +531,12 @@ export default function StaffPage() {
                       {p.status !== 'cancelled' && (
                         <button onClick={() => setConfirmDialog({ type: 'cancel', participant: p })}
                           style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #fca5a5', background: '#fff5f5', color: '#ef4444', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>🚫 キャンセル</button>
+                      {userInfo?.role === 'admin' && (
+                        <button onClick={() => setConfirmDialog({ type: 'delete', participant: p })}
+                          style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #6b7280', background: '#1f2937', color: '#9ca3af', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                          🗑️ 削除
+                        </button>
+                      )}
                       )}
                     </div>
                   )}
@@ -537,7 +551,7 @@ export default function StaffPage() {
           <div style={{ background: '#fff', borderRadius: 16, padding: '28px 24px', maxWidth: 340, width: '100%' }}>
             <div style={{ fontSize: 32, textAlign: 'center', marginBottom: 12 }}>{confirmDialog.type === 'promote' ? '✅' : '🚫'}</div>
             <div style={{ fontSize: 15, fontWeight: 800, color: '#1a2a3a', textAlign: 'center', marginBottom: 8 }}>
-              {confirmDialog.type === 'promote' ? '確定に昇格しますか？' : 'キャンセルしますか？'}
+              {confirmDialog.type === 'promote' ? '確定に昇格しますか？' : confirmDialog.type === 'delete' ? '⚠️ データを完全削除しますか？' : 'キャンセルしますか？'}
             </div>
             <div style={{ fontSize: 13, color: '#6a8090', textAlign: 'center', marginBottom: 20 }}>
               {confirmDialog.participant.last_name} {confirmDialog.participant.first_name}さん
@@ -545,7 +559,7 @@ export default function StaffPage() {
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => setConfirmDialog(null)}
                 style={{ flex: 1, padding: '11px', borderRadius: 9, border: '1.5px solid #dde8f5', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#6a8090', fontWeight: 700 }}>戻る</button>
-              <button onClick={() => confirmDialog.type === 'promote' ? handlePromote(confirmDialog.participant) : handleCancel(confirmDialog.participant)}
+              <button onClick={() => confirmDialog.type === 'promote' ? handlePromote(confirmDialog.participant) : confirmDialog.type === 'delete' ? handleDelete(confirmDialog.participant) : handleCancel(confirmDialog.participant)}
                 style={{ flex: 1, padding: '11px', borderRadius: 9, border: 'none', fontSize: 13, fontWeight: 800, cursor: 'pointer', background: confirmDialog.type === 'promote' ? 'linear-gradient(135deg,#1a3a2a,#2d7a4a)' : '#ef4444', color: '#fff' }}>
                 {confirmDialog.type === 'promote' ? '昇格する' : 'キャンセルする'}
               </button>
