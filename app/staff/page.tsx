@@ -27,6 +27,8 @@ export default function StaffPage() {
   const [loading, setLoading] = useState(false)
   const [filter, setFilter] = useState<'all' | 'confirmed' | 'waiting' | 'cancelled'>('all')
   const [actionMsg, setActionMsg] = useState('')
+  const [events, setEvents] = useState<{id:string;title:string;date:string;time_start:string;time_end:string}[]>([])
+  const [selectedEventId, setSelectedEventId] = useState('')
   const [confirmDialog, setConfirmDialog] = useState<{ type: string; participant: Participant } | null>(null)
 
   const handleLogin = async () => {
@@ -40,6 +42,9 @@ export default function StaffPage() {
 
   const fetchData = async (user: UserInfo) => {
     setLoading(true)
+    const { data: evtData } = await supabase.from('events').select('*').eq('status','open').order('date',{ascending:true})
+    if (evtData) { setEvents(evtData); if (!selectedEventId) setSelectedEventId(evtData[0]?.id || '') }
+
     const { data: shopData } = await supabase.from('shops').select('*')
     if (shopData) setShops(shopData)
     let query = supabase.from('participants').select('*, companions(*)').order('registered_at', { ascending: true })
@@ -50,6 +55,7 @@ export default function StaffPage() {
       const shopIds = agentShops.map(s => s.id)
       if (shopIds.length > 0) query = query.in('shop_id', shopIds)
     }
+    if (selectedEventId) query = query.eq('event_id', selectedEventId)
     const { data } = await query
     if (data) setParticipants(data)
     setLoading(false)
@@ -420,6 +426,32 @@ export default function StaffPage() {
           </div>
         </div>
       </div>
+
+      {/* ── イベント選択タブ ── */}
+      {events.length > 0 && (
+        <div style={{ background: '#0d1424', borderBottom: '1px solid rgba(255,255,255,0.07)', padding: '0 20px' }}>
+          <div style={{ maxWidth: 680, margin: '0 auto', display: 'flex', gap: 4, overflowX: 'auto' as const }}>
+            {events.map((evt, i) => {
+              const d = new Date(evt.date)
+              const days = ['日','月','火','水','木','金','土']
+              const label = `${d.getMonth()+1}/${d.getDate()}（${days[d.getDay()]}）`
+              const isActive = selectedEventId === evt.id
+              const colors = ['#3b82f6','#10b981','#f59e0b','#8b5cf6']
+              const C = colors[i] || '#3b82f6'
+              return (
+                <button
+                  key={evt.id}
+                  onClick={() => { setSelectedEventId(evt.id); fetchData(userInfo!) }}
+                  style={{ flexShrink: 0, padding: '10px 16px', border: 'none', borderBottom: isActive ? `3px solid ${C}` : '3px solid transparent', background: 'transparent', color: isActive ? C : '#64748b', fontWeight: isActive ? 900 : 400, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' as const, transition: 'all 0.15s' }}
+                >
+                  第{i+1}回 {label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 18px' }}>
         {actionMsg && <div style={{ background: '#f0fdf4', border: '1.5px solid #86efac', borderRadius: 10, padding: '12px 16px', marginBottom: 16, fontSize: 13, fontWeight: 700, color: '#1a3a2a' }}>{actionMsg}</div>}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
