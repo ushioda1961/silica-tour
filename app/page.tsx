@@ -237,7 +237,7 @@ export default function Home() {
                 <div style={{ fontSize: 11, color: '#2d7a4a', fontWeight: 700, marginBottom: 3 }}>🏭 {EVENT.title}</div>
                 <div style={{ fontSize: 12, color: '#445' }}>📅 {EVENT.date}　{EVENT.time}</div>
                 <div style={{ fontSize: 12, color: '#445', marginTop: 2 }}>🎫 {EVENT.fee}　🚗 {EVENT.parking}</div>
-                <div style={{ fontSize: 12, color: '#1a7a4a', marginTop: 2, fontWeight: 600 }}>🍻 懇親会あり（{EVENT.party.time}・¥{EVENT.party.fee.toLocaleString()}）</div>
+                <div style={{ fontSize: 12, color: '#1a7a4a', marginTop: 2, fontWeight: 600 }}>🍻 懇親会あり（JR尾張一宮駅近辺のお店・{EVENT.party.time}・¥{EVENT.party.fee.toLocaleString()}）</div>
                 <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4, fontWeight: 700 }}>⚠️ {EVENT.deadline}</div>
               </div>
               <div style={{ textAlign: 'center', minWidth: 90 }}>
@@ -420,7 +420,7 @@ export default function Home() {
               </div>
             <div style={{ background: '#fff', borderRadius: 12, padding: '16px 20px', marginBottom: 18, border: '1px solid #d4eadc' }}>
               <Lbl>備考・ご要望（任意）</Lbl>
-              <textarea value={form.remarks} onChange={e => setForm({ ...form, remarks: e.target.value })} placeholder="車椅子使用・アレルギーなど" rows={3}
+              <textarea value={form.remarks} onChange={e => setForm({ ...form, remarks: e.target.value })} placeholder="" rows={3}
                 style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1.5px solid #dde8f5', fontSize: 13, background: '#f8fbff', color: '#1a2a3a', resize: 'vertical', lineHeight: 1.7, boxSizing: 'border-box' as const }} />
             </div>
 
