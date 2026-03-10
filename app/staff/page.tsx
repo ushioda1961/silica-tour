@@ -129,129 +129,123 @@ export default function StaffPage() {
     </div>
   )
 
-  // ─── PDF名簿ダウンロード ───
+  // ─── PDF名簿ダウンロード（HTML印刷方式・日本語対応） ───
   const downloadPDF = () => {
-    const script = document.createElement('script')
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
-    script.onload = () => {
-      const { jsPDF } = (window as any).jspdf
-      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-      const pageW = 210
-      const margin = 14
-      let y = 20
+    // 代理店ごとにグループ化
+    const agentGroups: Record<string, typeof shops> = {}
+    shops.forEach(shop => {
+      const agent = shop.agent_name || '不明'
+      if (!agentGroups[agent]) agentGroups[agent] = []
+      agentGroups[agent].push(shop)
+    })
 
-      // ── ヘッダー ──
-      doc.setFillColor(30, 80, 50)
-      doc.rect(0, 0, pageW, 28, 'F')
-      doc.setTextColor(255, 255, 255)
-      doc.setFont('helvetica', 'bold')
-      doc.setFontSize(14)
-      doc.text('Factory Tour - Attendance List', margin, 11)
-      doc.setFontSize(9)
-      doc.setFont('helvetica', 'normal')
-      doc.text('2026.05.23 (Sat)  13:00-16:00', margin, 18)
-      doc.text('Silica Factory Tour', margin, 23)
-      doc.text(`Total: ${confirmedCount} attendees  (First-time: ${firstTimers + firstTimerCompanions}  Repeat: ${repeaters + repeaterCompanions})`, pageW - margin, 23, { align: 'right' })
-      y = 36
+    let rowNum = 1
+    let bodyHtml = ''
 
-      // ── 代理店ごとにグループ化 ──
-      const agentGroups: Record<string, typeof shops> = {}
-      shops.forEach(shop => {
-        const agent = shop.agent_name || 'Unknown'
-        if (!agentGroups[agent]) agentGroups[agent] = []
-        agentGroups[agent].push(shop)
-      })
+    Object.entries(agentGroups).forEach(([agentName, agentShops]) => {
+      bodyHtml += `<div class="agent-block">
+        <div class="agent-header">🏢 代理店：${agentName}</div>`
 
-      let rowNum = 1
-      Object.entries(agentGroups).forEach(([agentName, agentShops]) => {
-        // 代理店ヘッダー
-        if (y > 270) { doc.addPage(); y = 20 }
-        doc.setFillColor(220, 235, 225)
-        doc.rect(margin, y, pageW - margin * 2, 7, 'F')
-        doc.setTextColor(30, 80, 50)
-        doc.setFont('helvetica', 'bold')
-        doc.setFontSize(10)
-        doc.text(`[Agent]  ${agentName}`, margin + 2, y + 5)
-        y += 10
+      agentShops.forEach(shop => {
+        const shopParticipants = participants.filter(p => p.shop_id === shop.id && p.status === 'confirmed')
+        if (shopParticipants.length === 0) return
 
-        agentShops.forEach(shop => {
-          const shopParticipants = participants.filter(p => p.shop_id === shop.id && p.status === 'confirmed')
-          if (shopParticipants.length === 0) return
+        bodyHtml += `<div class="shop-block">
+          <div class="shop-header">🏪 担当販売者：${shop.name}</div>`
 
-          // 販売者ヘッダー
-          if (y > 270) { doc.addPage(); y = 20 }
-          doc.setFillColor(245, 250, 247)
-          doc.rect(margin + 4, y, pageW - margin * 2 - 4, 6, 'F')
-          doc.setTextColor(50, 100, 70)
-          doc.setFont('helvetica', 'bold')
-          doc.setFontSize(9)
-          doc.text(`  Shop:  ${shop.name}`, margin + 6, y + 4.5)
-          y += 8
+        shopParticipants.forEach(p => {
+          const badge = p.is_first ? '<span class="badge new">初回</span>' : '<span class="badge rpt">リピート</span>'
+          const party = p.party ? '<span class="party">🍻 懇親会</span>' : ''
+          bodyHtml += `<div class="row">
+            <span class="num">${rowNum++}</span>
+            ${badge}
+            <span class="name">${p.last_name} ${p.first_name}</span>
+            <span class="kana">${p.last_name_kana} ${p.first_name_kana}</span>
+            ${party}
+            <span class="check-area"><span class="checkbox"></span><span class="check-label">来場</span></span>
+          </div>`
 
-          shopParticipants.forEach(p => {
-            // 本人行
-            if (y > 275) { doc.addPage(); y = 20 }
-            const isFirst = p.is_first
-            doc.setTextColor(isFirst ? 180 : 50, isFirst ? 80 : 100, isFirst ? 0 : 180)
-            doc.setFont('helvetica', 'bold')
-            doc.setFontSize(8)
-            const badge = isFirst ? '[NEW]' : '[RPT]'
-            doc.text(`${String(rowNum).padStart(3, ' ')}. ${badge}  ${p.last_name} ${p.first_name}  (${p.last_name_kana} ${p.first_name_kana})`, margin + 8, y)
-            // チェックボックス
-            doc.setDrawColor(150, 150, 150)
-            doc.setLineWidth(0.3)
-            doc.rect(pageW - margin - 18, y - 3.5, 4, 4)
-            doc.setTextColor(100, 100, 100)
-            doc.setFont('helvetica', 'normal')
-            doc.setFontSize(7)
-            doc.text('Arrived', pageW - margin - 13, y)
-            if (p.party) {
-              doc.setTextColor(120, 60, 160)
-              doc.text('Banquet', pageW - margin - 28, y)
-            }
-            y += 6
-            rowNum++
-
-            // 同伴者行
-            p.companions?.forEach(c => {
-              if (y > 275) { doc.addPage(); y = 20 }
-              const cIsFirst = c.is_first
-              doc.setTextColor(cIsFirst ? 180 : 50, cIsFirst ? 80 : 100, cIsFirst ? 0 : 180)
-              doc.setFont('helvetica', 'bold')
-              doc.setFontSize(7.5)
-              const cBadge = cIsFirst ? '[NEW]' : '[RPT]'
-              doc.text(`${String(rowNum).padStart(3, ' ')}.   + ${cBadge}  ${c.last_name} ${c.first_name}  (companion)`, margin + 12, y)
-              doc.setDrawColor(150, 150, 150)
-              doc.rect(pageW - margin - 18, y - 3.5, 4, 4)
-              doc.setTextColor(100, 100, 100)
-              doc.setFont('helvetica', 'normal')
-              doc.setFontSize(7)
-              doc.text('Arrived', pageW - margin - 13, y)
-              if (c.party) {
-                doc.setTextColor(120, 60, 160)
-                doc.text('Banquet', pageW - margin - 28, y)
-              }
-              y += 5.5
-              rowNum++
-            })
+          p.companions?.forEach(c => {
+            const cbadge = c.is_first ? '<span class="badge new">初回</span>' : '<span class="badge rpt">リピート</span>'
+            const cparty = c.party ? '<span class="party">🍻 懇親会</span>' : ''
+            bodyHtml += `<div class="row companion">
+              <span class="num">${rowNum++}</span>
+              ${cbadge}
+              <span class="name">${c.last_name} ${c.first_name}</span>
+              <span class="kana">（同伴者）</span>
+              ${cparty}
+              <span class="check-area"><span class="checkbox"></span><span class="check-label">来場</span></span>
+            </div>`
           })
-          y += 3
         })
-        y += 4
+
+        bodyHtml += '</div>'
       })
 
-      // フッター
-      const pageCount = (doc as any).internal.getNumberOfPages()
-      for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i)
-        doc.setTextColor(150, 150, 150)
-        doc.setFontSize(7)
-        doc.text(`Page ${i} / ${pageCount}  —  Generated: ${new Date().toLocaleString('ja-JP')}`, pageW / 2, 293, { align: 'center' })
-      }
+      bodyHtml += '</div>'
+    })
 
-      doc.save('silica-tour-attendance.pdf')
+    const now = new Date().toLocaleString('ja-JP')
+    const html = `<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>来場者名簿 - シリカ製造工場 無料見学会</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', 'Yu Gothic', sans-serif; font-size: 11pt; color: #1a2a1a; background: #fff; }
+  .page-header { background: #1e5032; color: #fff; padding: 14px 20px 12px; margin-bottom: 18px; }
+  .page-header h1 { font-size: 16pt; font-weight: 900; margin-bottom: 4px; }
+  .page-header .sub { font-size: 9pt; opacity: 0.85; margin-bottom: 2px; }
+  .page-header .stats { font-size: 9pt; opacity: 0.8; margin-top: 6px; }
+  .content { padding: 0 16px; }
+  .agent-block { margin-bottom: 18px; }
+  .agent-header { background: #dce8dc; border-left: 4px solid #1e5032; padding: 6px 12px; font-size: 11pt; font-weight: 900; color: #1e5032; margin-bottom: 6px; }
+  .shop-block { margin-bottom: 10px; margin-left: 12px; }
+  .shop-header { background: #f0f7f0; border-left: 3px solid #4a9a6a; padding: 5px 10px; font-size: 10pt; font-weight: 700; color: #2d6a4a; margin-bottom: 4px; }
+  .row { display: flex; align-items: center; gap: 8px; padding: 5px 8px 5px 20px; border-bottom: 1px solid #eee; min-height: 26px; }
+  .row.companion { padding-left: 36px; background: #fafafa; }
+  .num { min-width: 26px; font-size: 9pt; color: #888; text-align: right; }
+  .badge { font-size: 8pt; font-weight: 900; padding: 2px 7px; border-radius: 4px; white-space: nowrap; }
+  .badge.new { background: #fff0e0; color: #c05000; border: 1px solid #f0a060; }
+  .badge.rpt { background: #e0ecff; color: #1040a0; border: 1px solid #80aaee; }
+  .name { font-size: 12pt; font-weight: 700; min-width: 100px; }
+  .kana { font-size: 8.5pt; color: #666; flex: 1; }
+  .party { font-size: 8pt; color: #7030a0; white-space: nowrap; }
+  .check-area { display: flex; align-items: center; gap: 4px; margin-left: auto; white-space: nowrap; }
+  .checkbox { display: inline-block; width: 14px; height: 14px; border: 1.5px solid #888; border-radius: 2px; }
+  .check-label { font-size: 8pt; color: #666; }
+  .footer { margin-top: 20px; padding: 8px 16px; border-top: 1px solid #ccc; font-size: 8pt; color: #888; text-align: center; }
+  @media print {
+    body { font-size: 10pt; }
+    .no-print { display: none !important; }
+    .page-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .agent-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .shop-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    @page { margin: 12mm 10mm; }
+  }
+</style>
+</head>
+<body>
+<div class="page-header">
+  <h1>来場者名簿　シリカ製造工場 無料見学会</h1>
+  <div class="sub">2026年5月23日（土）13:00〜16:00</div>
+  <div class="stats">参加確定：${confirmedCount}名　／　初回：${firstTimers + firstTimerCompanions}名　リピート：${repeaters + repeaterCompanions}名　懇親会参加：${partyCount}名</div>
+</div>
+<div class="content">${bodyHtml}</div>
+<div class="footer">出力日時：${now}　／　このページを印刷（Ctrl+P）してPDFとして保存してください</div>
+<div class="no-print" style="position:fixed;bottom:16px;right:16px;">
+  <button onclick="window.print()" style="background:#1e5032;color:#fff;border:none;border-radius:8px;padding:12px 24px;font-size:13px;font-weight:900;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.3);">🖨️ 印刷 / PDFとして保存</button>
+</div>
+</body>
+</html>`
+
+    const w = window.open('', '_blank')
+    if (w) {
+      w.document.write(html)
+      w.document.close()
     }
-    document.head.appendChild(script)
   }
 
   // ─── メーカービュー ───
