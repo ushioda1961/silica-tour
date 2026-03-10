@@ -12,7 +12,7 @@ const EVENT = {
   parking: "駐車場はありません",
   deadline: "定員となり次第締め切ります",
   capacity: 50,
-  party: { title: "見学会後 懇親会", fee: 3000, time: "16:30〜18:30" },
+  party: { title: "見学会後 懇親会", fee: 3000, time: "17:00〜19:00" },
 }
 
 const shops = [
