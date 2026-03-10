@@ -3,9 +3,8 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
-const EVENT = {
+const EVENT_BASE = {
   title: "シリカ製造工場 無料見学会",
-  date: "2026年5月23日（土）",
   time: "13:00〜16:00",
   fee: "無料",
   type: "現地集合・現地解散",
@@ -31,7 +30,26 @@ export default function Home() {
     isFirst: null as boolean | null, party: null as boolean | null, remarks: '',
   })
 
+  // イベント一覧をSupabaseから取得
+  useEffect(() => {
+    const fetchEvents = async () => {
+      const { data } = await supabase.from('events').select('id, date, time_start, time_end').eq('status', 'open').order('date')
+      if (data) {
+        const list = data.map((e: any) => ({
+          id: e.id,
+          date: e.date,
+          label: new Date(e.date).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' }) + '  ' + e.time_start + '〜' + e.time_end
+        }))
+        setEvents(list)
+        if (list.length > 0) setSelectedEventId(list[0].id)
+      }
+    }
+    fetchEvents()
+  }, [])
+
   const [companions, setCompanions] = useState<any[]>([])
+  const [events, setEvents] = useState<{ id: string; date: string; label: string }[]>([])
+  const [selectedEventId, setSelectedEventId] = useState<string>('')
 
   // 販売店一覧をSupabaseから取得
   useEffect(() => {
@@ -117,8 +135,7 @@ export default function Home() {
       }
 
       // 参加者を登録
-      const { data: eventData } = await supabase.from('events').select('id').single()
-      const eventId = eventData?.id
+      const eventId = selectedEventId
       const { data: participant, error } = await supabase
         .from('participants')
         .insert({
@@ -235,6 +252,23 @@ export default function Home() {
         {/* 定員バー */}
         {step < 3 && (
           <div style={{ background: '#fff', borderRadius: 14, padding: '16px 20px', marginBottom: 18, boxShadow: '0 2px 14px rgba(30,80,50,0.08)', border: '1px solid #d4eadc' }}>
+              {/* ── イベント選択 ── */}
+              <div style={{ marginBottom: 20, padding: '14px 16px', background: 'linear-gradient(135deg,#e8f5ee,#f0faf4)', border: '2px solid #2d7a4a', borderRadius: 12 }}>
+                <div style={{ fontSize: 13, fontWeight: 900, color: '#1a3a2a', marginBottom: 10 }}>📅 参加希望日を選択してください</div>
+                {events.length === 0 ? (
+                  <div style={{ color: '#64748b', fontSize: 13 }}>読み込み中...</div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {events.map(ev => (
+                      <label key={ev.id} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '8px 12px', borderRadius: 8, background: selectedEventId === ev.id ? 'rgba(45,122,74,0.12)' : 'rgba(255,255,255,0.6)', border: selectedEventId === ev.id ? '1.5px solid #2d7a4a' : '1.5px solid rgba(45,122,74,0.2)' }}>
+                        <input type="radio" name="eventSelect" value={ev.id} checked={selectedEventId === ev.id} onChange={() => setSelectedEventId(ev.id)} style={{ accentColor: '#2d7a4a', width: 16, height: 16 }} />
+                        <span style={{ fontSize: 14, fontWeight: selectedEventId === ev.id ? 800 : 500, color: '#1a3a2a' }}>{ev.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 10 }}>
               <div style={{ flex: 1, minWidth: 200 }}>
                 <div style={{ fontSize: 11, color: '#2d7a4a', fontWeight: 700, marginBottom: 3 }}>🏭 {EVENT.title}</div>
