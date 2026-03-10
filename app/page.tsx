@@ -532,7 +532,7 @@ export default function Home() {
                 ? 'キャンセル待ちを受け付けました。空きが出た場合、申込順に参加確定のご連絡をいたします。'
                 : '確認メールをお送りしました。当日のご参加をお待ちしております！'}
             </p>
-            <button onClick={() => { setStep(0); setForm({ lastName: '', firstName: '', lastNameKana: '', firstNameKana: '', email: '', emailConfirm: '', phone: '', shopId: '', isFirst: null, party: null, prefecture: '', remarks: '' }); setCompanions([]); setAgreed(false); setSubmitted(null); }}
+            <button onClick={() => { setStep(0); setForm({ lastName: '', firstName: '', lastNameKana: '', firstNameKana: '', userType: 'customer', email: '', emailConfirm: '', phone: '', shopId: '', isFirst: null, party: null, prefecture: '', remarks: '' }); setCompanions([]); setAgreed(false); setSubmitted(null); }}
               style={{ padding: '10px 24px', borderRadius: 10, border: '1.5px solid #d4eadc', background: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', color: '#6a8070' }}>
               別の方の申込みをする
             </button>
