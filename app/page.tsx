@@ -38,7 +38,7 @@ export default function Home() {
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const [form, setForm] = useState({
-    lastName: '', firstName: '', lastNameKana: '', firstNameKana: '',
+    lastName: '', firstName: '', lastNameKana: '', firstNameKana: '', prefecture: '',
     email: '', emailConfirm: '', phone: '', shopId: '',
     isFirst: null as boolean | null, party: null as boolean | null, remarks: '',
   })
@@ -133,7 +133,7 @@ export default function Home() {
           status: (isFull || willWait) ? 'waiting' : 'confirmed',
           wait_no: waitNo,
           prefecture: form.prefecture,
-        remarks: form.remarks,
+          remarks: form.remarks,
         })
         .select()
         .single()
