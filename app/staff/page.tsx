@@ -511,7 +511,7 @@ export default function StaffPage() {
                       <span>{p.party ? '🍻 懇親会参加' : '懇親会不参加'}</span>
                       {p.companions?.length > 0 && <span> 👥 同伴者{p.companions.length}名</span>}
                     </div>
-                    {p.remarks && <div style={{ fontSize: 11, color: '#888', marginTop: 4 }}>💬 {p.remarks}</div>}
+                    {p.remarks && <div style={{ fontSize: 11, color: '#555', marginTop: 6, padding: '4px 8px', background: '#f0f7f0', borderRadius: 4, borderLeft: '3px solid #4a9060' }}>💬 質問事項：{p.remarks}</div>}
                     {p.companions?.length > 0 && (
                       <div style={{ marginTop: 8, paddingLeft: 12, borderLeft: '2px solid #e2e8f0' }}>
                         {p.companions.map((c, i) => (
