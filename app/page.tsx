@@ -364,7 +364,7 @@ function HomeContent() {
             <div style={{ background: '#fff', borderRadius: 14, padding: '22px', marginBottom: 14, boxShadow: '0 2px 10px rgba(30,80,50,0.06)', border: '1px solid #d4eadc' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
                 <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg,#1a3a2a,#2d7a4a)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: '#fff', fontWeight: 800 }}>代</div>
-                <h3 style={{ fontSize: 14, fontWeight: 800, color: '#1a3a2a' }}>代表者のご情報</h3>
+                <h3 style={{ fontSize: 14, fontWeight: 800, color: '#1a3a2a' }}>ご参加者様情報（グループの方は代表者）</h3>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
                 <div><Lbl>姓<Req /></Lbl><input value={form.lastName} onChange={e => setForm({ ...form, lastName: e.target.value })} placeholder="山田" style={inpStyle('lastName')} /><Err f="lastName" /></div>
