@@ -39,6 +39,11 @@ const shops = [
   { id: "S21", name: "足田竜子" },
   { id: "S22", name: "古瀬由美子" },
   { id: "S23", name: "妻鹿かおり" },
+  { id: "S24", name: "ペロネ郁子" },
+  { id: "S25", name: "本吉望" },
+  { id: "S26", name: "前田有希子" },
+  { id: "S27", name: "古川裕和" },
+  { id: "S28", name: "林初子" },
 ]
 
 export default function Home() {
