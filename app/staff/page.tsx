@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase'
 
 type Role = 'admin' | 'agent' | 'shop' | 'maker'
 type UserInfo = { login_id: string; role: Role; shop_id: string | null }
-type Participant = {
+type Participant = {h
   id: string; last_name: string; first_name: string; last_name_kana: string; first_name_kana: string
   email: string; phone: string; shop_id: string
   is_first: boolean; party: boolean
@@ -13,7 +13,7 @@ type Participant = {
   companions: Companion[]
 }
 type Companion = { id: string; last_name: string; first_name: string; is_first: boolean; party: boolean }
-type Shop = { id: string; name: string; agent_name: string }
+type Shop = { id: string; name: string; agent_name: string }h
 
 export default function StaffPage() {
   const [loggedIn, setLoggedIn] = useState(false)
@@ -62,7 +62,7 @@ export default function StaffPage() {
 
   const getAgentName = (loginId: string) => {
     const map: Record<string, string> = {
-      'ushioda': '牛王田雅章', 'kawakami': '川上利夫', 'ikeo': '池尾里絵', 'fujii': '藤井佑昴'
+       'kawakami': '川上利夫', 'fujii': '藤井佑昴'
     }
     return map[loginId] || ''
   }
