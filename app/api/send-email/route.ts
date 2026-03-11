@@ -6,6 +6,7 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 // スタッフ通知先メールアドレス（ここに追加してください）
 const STAFF_EMAILS = [
   'u-mail@ushioda-masaaki.com',
+    'lotuseveil@gmail.com',
   // 'staff2@example.com',  // 2人目のスタッフ
   // 'staff3@example.com',  // 3人目のスタッフ
 ]
