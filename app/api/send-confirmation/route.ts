@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
                                                                 'Content-Type': 'application/json',
                                                                       },
                                                                             body: JSON.stringify({
-                                                                                    from: 'シリカ見学会 <onboarding@resend.dev>',
+                                                                                                                from: 'シリカ見学会 <noreply@you-planning.org>',
                                                                                             to: [to],
                                                                                                     subject: `【申込完了】シリカ製造工場 無料見学会 ${eventDate}`,
                                                                                                             text: emailBody,
@@ -59,4 +59,5 @@ export async function POST(req: NextRequest) {
                                                                                                                                                               return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
                                                                                                                                                                 }
                                                                                                                                                                 }
+
                                                                                                                                                                 
