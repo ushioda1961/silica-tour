@@ -82,7 +82,7 @@ export default function Home() {
           return (
             <div
               key={evt.id}
-              onClick={() => !isFull && router.push(`/register?eventId=${evt.id}`)}
+            onClick={() => !isFull && router.push(`/register?eventId=${evt.id}`)}
               style={{ background: '#111827', borderRadius: 16, border: `1.5px solid ${isFull ? 'rgba(255,255,255,0.06)' : C.main + '60'}`, boxShadow: isFull ? 'none' : `0 4px 24px ${C.glow}`, cursor: isFull ? 'not-allowed' : 'pointer', overflow: 'hidden', opacity: isFull ? 0.6 : 1, transition: 'transform 0.15s' }}
               onMouseEnter={e => { if (!isFull) (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)' }}
