@@ -122,6 +122,9 @@ export default function Home() {
         <p style={{ margin: 0 }}>参加費：無料 ／ 懇親会：3,000円（任意）</p>
         <p style={{ margin: 0 }}>会場：愛知県一宮市内（詳細は担当販売者にお問い合わせください）</p>
       </div>
+                    <div style={{ marginTop: 16, textAlign: 'center' }}>
+                                    <a href="/shop-register" style={{ fontSize: 12, color: '#6b7280', textDecoration: 'none', borderBottom: '1px solid #6b7280', paddingBottom: 1 }}>🏪 販売者の方はこちらから申込</a>
+                                                  </div>
     </div>
   )
 }
