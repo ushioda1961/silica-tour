@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { supabase } from '../../lib/supabase'
 
@@ -15,7 +15,7 @@ type Event = {
   status: string
 }
 
-export default function RegisterPage() {
+function RegisterForm() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const eventId = searchParams.get('eventId')
@@ -213,5 +213,13 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh', background: '#0f0f1a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>読み込み中...</div>}>
+      <RegisterForm />
+    </Suspense>
   )
 }
