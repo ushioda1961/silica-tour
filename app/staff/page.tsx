@@ -13,7 +13,7 @@ type Participant = {h
   companions: Companion[]
 }
 type Companion = { id: string; last_name: string; first_name: string; is_first: boolean; party: boolean }
-type Shop = { id: string; name: string; agent_name: string }h
+type Shop = { id: string; name: string; agent_name: string }
 
 export default function StaffPage() {
   const [loggedIn, setLoggedIn] = useState(false)
