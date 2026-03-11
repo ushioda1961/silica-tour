@@ -1,12 +1,10 @@
 'use client'
-
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { supabase } from '../lib/supabase'
 
-const EVENT = {
+const EVENT_STATIC = {
   title: "シリカ製造工場 無料見学会",
-  date: "2026年5月23日（土）",
-  time: "13:00〜16:00",
   fee: "無料",
   type: "現地集合・現地解散",
   parking: "駐車場はありません",
@@ -14,6 +12,19 @@ const EVENT = {
   capacity: 50,
   party: { title: "見学会後 懇親会", fee: 3000, time: "17:00〜19:00" },
 }
+
+const formatDate = (dateStr: string) => {
+  if (!dateStr) return ''
+  const d = new Date(dateStr)
+  const days = ['日', '月', '火', '水', '木', '金', '土']
+  const y = d.getFullYear()
+  const m = d.getMonth() + 1
+  const day = d.getDate()
+  const dow = days[d.getDay()]
+  return `${y}年${m}月${day}日（${dow}）`
+}
+
+const formatTime = (t: string) => t?.slice(0, 5) || ''
 
 const shops = [
   { id: "S01", name: "高橋明子" },
@@ -46,7 +57,11 @@ const shops = [
   { id: "S28", name: "林初子" },
 ]
 
-export default function Home() {
+function HomeContent() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const eventIdParam = searchParams.get('event_id')
+
   const [step, setStep] = useState(0)
   const [currentCount, setCurrentCount] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -54,34 +69,55 @@ export default function Home() {
   const [submitted, setSubmitted] = useState<string | null>(null)
   const [agreed, setAgreed] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
-
+  const [eventId, setEventId] = useState<string | null>(null)
+  const [eventInfo, setEventInfo] = useState<{ date: string; time_start: string; time_end: string } | null>(null)
   const [form, setForm] = useState({
-    lastName: '', firstName: '', lastNameKana: '', firstNameKana: '', prefecture: '',
-    email: '', emailConfirm: '', phone: '', shopId: '',
-    isFirst: null as boolean | null, party: null as boolean | null, remarks: '',
+    lastName: '', firstName: '', lastNameKana: '', firstNameKana: '',
+    prefecture: '', email: '', emailConfirm: '', phone: '',
+    shopId: '', isFirst: null as boolean | null, party: null as boolean | null, remarks: '',
   })
-
   const [companions, setCompanions] = useState<any[]>([])
 
-  // 現在の参加人数をSupabaseから取得
   useEffect(() => {
-    fetchCount()
-  }, [])
+    fetchEvent()
+  }, [eventIdParam])
 
-  const fetchCount = async () => {
+  const fetchEvent = async () => {
     setLoading(true)
+    let query = supabase.from('events').select('id, date, time_start, time_end, capacity, status').eq('status', 'open')
+    if (eventIdParam) {
+      query = query.eq('id', eventIdParam)
+    } else {
+      query = query.order('date', { ascending: true })
+    }
+    const { data, error } = await query.limit(1).single()
+
+    if (!error && data) {
+      setEventId(data.id)
+      setEventInfo({ date: data.date, time_start: data.time_start, time_end: data.time_end })
+      fetchCount(data.id, data.capacity)
+    } else {
+      setLoading(false)
+    }
+  }
+
+  const fetchCount = async (eid: string, cap?: number) => {
     const { data, error } = await supabase
       .from('participants')
       .select('id, companions(id)')
+      .eq('event_id', eid)
       .eq('status', 'confirmed')
-
     if (!error && data) {
-      const total = data.reduce((sum: number, p: any) => {
-        return sum + 1 + (p.companions?.length || 0)
-      }, 0)
+      const total = data.reduce((sum: number, p: any) => sum + 1 + (p.companions?.length || 0), 0)
       setCurrentCount(total)
     }
     setLoading(false)
+  }
+
+  const EVENT = {
+    ...EVENT_STATIC,
+    date: eventInfo ? formatDate(eventInfo.date) : '',
+    time: eventInfo ? `${formatTime(eventInfo.time_start)}〜${formatTime(eventInfo.time_end)}` : '',
   }
 
   const remaining = EVENT.capacity - currentCount
@@ -120,57 +156,34 @@ export default function Home() {
   const handleSubmit = async () => {
     setSubmitting(true)
     try {
-      // キャンセル待ち番号を取得
       let waitNo = null
       if (isFull || willWait) {
         const { data: waitData } = await supabase
-          .from('participants')
-          .select('wait_no')
-          .eq('status', 'waiting')
-          .order('wait_no', { ascending: false })
-          .limit(1)
+          .from('participants').select('wait_no').eq('status', 'waiting')
+          .order('wait_no', { ascending: false }).limit(1)
         waitNo = waitData && waitData.length > 0 ? (waitData[0].wait_no || 0) + 1 : 1
       }
-
-      // 参加者を登録
-      const { data: eventData } = await supabase.from('events').select('id').single()
-      const eventId = eventData?.id
       const { data: participant, error } = await supabase
         .from('participants')
         .insert({
           event_id: eventId,
-          last_name: form.lastName,
-          first_name: form.firstName,
-          last_name_kana: form.lastNameKana,
-          first_name_kana: form.firstNameKana,
-          email: form.email,
-          phone: form.phone,
-          shop_id: form.shopId,
-          is_first: form.isFirst,
-          party: form.party,
+          last_name: form.lastName, first_name: form.firstName,
+          last_name_kana: form.lastNameKana, first_name_kana: form.firstNameKana,
+          email: form.email, phone: form.phone, shop_id: form.shopId,
+          is_first: form.isFirst, party: form.party,
           status: (isFull || willWait) ? 'waiting' : 'confirmed',
-          wait_no: waitNo,
-          prefecture: form.prefecture,
-          remarks: form.remarks,
+          wait_no: waitNo, prefecture: form.prefecture, remarks: form.remarks,
         })
-        .select()
-        .single()
-
+        .select().single()
       if (error) throw error
-
-      // 同伴者を登録
       if (companions.length > 0) {
         const companionData = companions.map(c => ({
           participant_id: participant.id,
-          last_name: c.lastName,
-          first_name: c.firstName || '',
-          relation: c.relation || '',
-          is_first: c.isFirst,
-          party: c.party,
+          last_name: c.lastName, first_name: c.firstName || '',
+          relation: c.relation || '', is_first: c.isFirst, party: c.party,
         }))
         await supabase.from('companions').insert(companionData)
       }
-
       const finalStatus = (isFull || willWait) ? 'waiting' : 'confirmed'
       setSubmitted(finalStatus)
       fetch('/api/send-email', {
@@ -179,7 +192,7 @@ export default function Home() {
         body: JSON.stringify({ type: 'new', participant: { ...participant, status: finalStatus }, companions }),
       }).catch(() => {})
       setStep(3)
-      fetchCount()
+      if (eventId) fetchCount(eventId)
     } catch (e) {
       alert('申込中にエラーが発生しました。もう一度お試しください。')
     }
@@ -195,7 +208,6 @@ export default function Home() {
   const Req = () => <span style={{ fontSize: 10, background: '#ef4444', color: '#fff', padding: '1px 5px', borderRadius: 3, marginLeft: 5, fontWeight: 700 }}>必須</span>
   const Err = ({ f }: { f: string }) => errors[f] ? <div style={{ fontSize: 11, color: '#ef4444', marginTop: 3 }}>{errors[f]}</div> : null
   const Lbl = ({ children }: { children: React.ReactNode }) => <div style={{ fontSize: 12, fontWeight: 700, color: '#4a6080', marginBottom: 6 }}>{children}</div>
-
   const inpStyle = (field: string) => ({
     width: '100%', padding: '11px 13px', borderRadius: 9, fontSize: 13,
     background: errors[field] ? '#fff5f5' : '#f8fbff',
@@ -212,9 +224,7 @@ export default function Home() {
           { v: true, icon: '🙋', label: '参加する', sub: `¥${EVENT.party.fee.toLocaleString()}`, color: '#2d7a4a', bg: '#f0fdf4', border: '#86efac' },
           { v: false, icon: '🙅', label: '不参加', sub: '参加費なし', color: '#64748b', bg: '#f8faff', border: '#e2e8f0' },
         ].map(opt => (
-          <div key={String(opt.v)} onClick={() => onChange(opt.v)}
-            style={{ padding: '11px 10px', borderRadius: 10, border: `2px solid ${value === opt.v ? opt.border : '#e2e8f0'}`, cursor: 'pointer', textAlign: 'center',
-              background: value === opt.v ? opt.bg : '#f8faff' }}>
+          <div key={String(opt.v)} onClick={() => onChange(opt.v)} style={{ padding: '11px 10px', borderRadius: 10, border: `2px solid ${value === opt.v ? opt.border : '#e2e8f0'}`, cursor: 'pointer', textAlign: 'center', background: value === opt.v ? opt.bg : '#f8faff' }}>
             <div style={{ fontSize: 20, marginBottom: 3 }}>{opt.icon}</div>
             <div style={{ fontSize: 12, fontWeight: 800, color: value === opt.v ? opt.color : '#9ca3af' }}>{opt.label}</div>
             <div style={{ fontSize: 10, color: value === opt.v ? opt.color : '#d1d5db', marginTop: 2 }}>{opt.sub}</div>
@@ -231,30 +241,42 @@ export default function Home() {
     </div>
   )
 
+  if (!eventId) return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', fontFamily: 'sans-serif', gap: 16 }}>
+      <div style={{ fontSize: 16, color: '#888' }}>イベントが見つかりません</div>
+      <button onClick={() => router.push('/events')} style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#1a3a2a,#2d7a4a)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+        イベント一覧へ戻る
+      </button>
+    </div>
+  )
+
   return (
     <div style={{ fontFamily: "'Hiragino Kaku Gothic ProN','Meiryo',sans-serif", background: 'linear-gradient(170deg,#e8f4ff 0%,#f0f8ee 60%,#fffbe8 100%)', minHeight: '100vh' }}>
-
       {/* ヘッダー */}
       <div style={{ background: 'linear-gradient(135deg,#1a3a2a,#2d5a3a)', padding: '0 24px' }}>
-        <div style={{ maxWidth: 680, margin: '0 auto', padding: '16px 0', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 9, background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>🏭</div>
-          <div>
-            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.1em' }}>FACTORY TOUR REGISTRATION</div>
-            <div style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>工場見学会 参加申込</div>
+        <div style={{ maxWidth: 680, margin: '0 auto', padding: '16px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 9, background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>🏭</div>
+            <div>
+              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.1em' }}>FACTORY TOUR REGISTRATION</div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>工場見学会 参加申込</div>
+            </div>
           </div>
+          <button onClick={() => router.push('/events')} style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 7, padding: '5px 12px', cursor: 'pointer' }}>
+            ← 日程一覧
+          </button>
         </div>
       </div>
 
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '26px 18px 64px' }}>
-
         {/* 定員バー */}
         {step < 3 && (
           <div style={{ background: '#fff', borderRadius: 14, padding: '16px 20px', marginBottom: 18, boxShadow: '0 2px 14px rgba(30,80,50,0.08)', border: '1px solid #d4eadc' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 10 }}>
               <div style={{ flex: 1, minWidth: 200 }}>
                 <div style={{ fontSize: 11, color: '#2d7a4a', fontWeight: 700, marginBottom: 3 }}>🏭 {EVENT.title}</div>
-                <div style={{ fontSize: 12, color: '#445' }}>📅 {EVENT.date}　{EVENT.time}</div>
-                <div style={{ fontSize: 12, color: '#445', marginTop: 2 }}>🎫 {EVENT.fee}　🚗 {EVENT.parking}</div>
+                <div style={{ fontSize: 12, color: '#445' }}>📅 {EVENT.date} {EVENT.time}</div>
+                <div style={{ fontSize: 12, color: '#445', marginTop: 2 }}>🎫 {EVENT.fee} 🚗 {EVENT.parking}</div>
                 <div style={{ fontSize: 12, color: '#1a7a4a', marginTop: 2, fontWeight: 600 }}>🍻 懇親会あり（JR尾張一宮駅近辺のお店・{EVENT.party.time}・¥{EVENT.party.fee.toLocaleString()}）</div>
                 <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4, fontWeight: 700 }}>⚠️ {EVENT.deadline}</div>
               </div>
@@ -279,9 +301,7 @@ export default function Home() {
             {['見学会について', '申込み情報', '確認・送信'].map((s, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', flex: i < 2 ? 1 : 'none' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <div style={{ width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800,
-                    background: i < step ? '#2d7a4a' : i === step ? 'linear-gradient(135deg,#1a3a2a,#2d7a4a)' : '#e5e7eb',
-                    color: i <= step ? '#fff' : '#9ca3af' }}>{i < step ? '✓' : i + 1}</div>
+                  <div style={{ width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, background: i < step ? '#2d7a4a' : i === step ? 'linear-gradient(135deg,#1a3a2a,#2d7a4a)' : '#e5e7eb', color: i <= step ? '#fff' : '#9ca3af' }}>{i < step ? '✓' : i + 1}</div>
                   <span style={{ fontSize: 11, fontWeight: 600, color: i === step ? '#1a3a2a' : '#9ca3af', whiteSpace: 'nowrap' }}>{s}</span>
                 </div>
                 {i < 2 && <div style={{ flex: 1, height: 2, background: i < step ? '#2d7a4a' : '#e5e7eb', margin: '0 6px' }} />}
@@ -297,7 +317,7 @@ export default function Home() {
             <p style={{ fontSize: 13, color: '#6a8070', lineHeight: 1.8, marginBottom: 20 }}>シリカの製造工程を間近でご覧いただける貴重な機会です。ご参加をお待ちしております。</p>
             <div style={{ marginBottom: 16 }}>
               {[
-                ['開催日時', `${EVENT.date}　${EVENT.time}`],
+                ['開催日時', `${EVENT.date} ${EVENT.time}`],
                 ['参加費', EVENT.fee],
                 ['集合・解散', EVENT.type],
                 ['駐車場', EVENT.parking],
@@ -368,9 +388,7 @@ export default function Home() {
                 <Lbl>見学会 参加区分<Req /></Lbl>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                   {[{ v: true, icon: '🆕', title: '初回参加', desc: '今回が初めて' }, { v: false, icon: '↩️', title: 'リピート', desc: '以前も参加あり' }].map(opt => (
-                    <div key={String(opt.v)} onClick={() => setForm({ ...form, isFirst: opt.v })}
-                      style={{ padding: '12px', borderRadius: 10, border: `2px solid ${form.isFirst === opt.v ? '#2d7a4a' : '#dde8f5'}`, cursor: 'pointer',
-                        background: form.isFirst === opt.v ? '#f0fdf4' : '#f8fbff', textAlign: 'center' }}>
+                    <div key={String(opt.v)} onClick={() => setForm({ ...form, isFirst: opt.v })} style={{ padding: '12px', borderRadius: 10, border: `2px solid ${form.isFirst === opt.v ? '#2d7a4a' : '#dde8f5'}`, cursor: 'pointer', background: form.isFirst === opt.v ? '#f0fdf4' : '#f8fbff', textAlign: 'center' }}>
                       <div style={{ fontSize: 20 }}>{opt.icon}</div>
                       <div style={{ fontSize: 12, fontWeight: 700, color: form.isFirst === opt.v ? '#1a3a2a' : '#6a8090', marginTop: 3 }}>{opt.title}</div>
                       <div style={{ fontSize: 10, color: '#9aaa9a', marginTop: 1 }}>{opt.desc}</div>
@@ -385,25 +403,20 @@ export default function Home() {
               <div key={i} style={{ background: '#fff', borderRadius: 13, padding: '20px 22px', marginBottom: 12, border: '2px solid #d4f0dc' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                   <span style={{ fontSize: 13, fontWeight: 800, color: '#2a4a2a' }}>同伴者 {i + 1}</span>
-                  <button onClick={() => setCompanions(c => c.filter((_, idx) => idx !== i))}
-                    style={{ fontSize: 11, color: '#ef4444', background: '#fff5f5', border: '1px solid #fca5a5', borderRadius: 6, padding: '3px 10px', cursor: 'pointer' }}>削除</button>
+                  <button onClick={() => setCompanions(c => c.filter((_, idx) => idx !== i))} style={{ fontSize: 11, color: '#ef4444', background: '#fff5f5', border: '1px solid #fca5a5', borderRadius: 6, padding: '3px 10px', cursor: 'pointer' }}>削除</button>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
                   <div><Lbl>姓<Req /></Lbl>
-                    <input value={comp.lastName || ''} onChange={e => setCompanions(c => c.map((x, idx) => idx === i ? { ...x, lastName: e.target.value } : x))} placeholder="山田"
-                      style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1.5px solid ${errors[`c_${i}_name`] ? '#fca5a5' : '#dde8f5'}`, fontSize: 13, background: '#f8fbff', color: '#1a2a3a', boxSizing: 'border-box' as const }} />
+                    <input value={comp.lastName || ''} onChange={e => setCompanions(c => c.map((x, idx) => idx === i ? { ...x, lastName: e.target.value } : x))} placeholder="山田" style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1.5px solid ${errors[`c_${i}_name`] ? '#fca5a5' : '#dde8f5'}`, fontSize: 13, background: '#f8fbff', color: '#1a2a3a', boxSizing: 'border-box' as const }} />
                     <Err f={`c_${i}_name`} /></div>
                   <div><Lbl>名</Lbl>
-                    <input value={comp.firstName || ''} onChange={e => setCompanions(c => c.map((x, idx) => idx === i ? { ...x, firstName: e.target.value } : x))} placeholder="太郎"
-                      style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1.5px solid #dde8f5', fontSize: 13, background: '#f8fbff', color: '#1a2a3a', boxSizing: 'border-box' as const }} /></div>
+                    <input value={comp.firstName || ''} onChange={e => setCompanions(c => c.map((x, idx) => idx === i ? { ...x, firstName: e.target.value } : x))} placeholder="太郎" style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1.5px solid #dde8f5', fontSize: 13, background: '#f8fbff', color: '#1a2a3a', boxSizing: 'border-box' as const }} /></div>
                 </div>
                 <div style={{ marginBottom: 12 }}>
                   <Lbl>参加区分<Req /></Lbl>
                   <div style={{ display: 'flex', gap: 6 }}>
                     {[{ v: true, label: '🆕 初回' }, { v: false, label: '↩️ リピート' }].map(opt => (
-                      <div key={String(opt.v)} onClick={() => setCompanions(c => c.map((x, idx) => idx === i ? { ...x, isFirst: opt.v } : x))}
-                        style={{ flex: 1, padding: '8px 4px', borderRadius: 7, border: `2px solid ${comp.isFirst === opt.v ? '#2d7a4a' : '#dde8f5'}`, cursor: 'pointer', textAlign: 'center', fontSize: 11, fontWeight: 700,
-                          background: comp.isFirst === opt.v ? '#f0fdf4' : '#f8fbff', color: comp.isFirst === opt.v ? '#1a3a2a' : '#9aaa9a' }}>{opt.label}</div>
+                      <div key={String(opt.v)} onClick={() => setCompanions(c => c.map((x, idx) => idx === i ? { ...x, isFirst: opt.v } : x))} style={{ flex: 1, padding: '8px 4px', borderRadius: 7, border: `2px solid ${comp.isFirst === opt.v ? '#2d7a4a' : '#dde8f5'}`, cursor: 'pointer', textAlign: 'center', fontSize: 11, fontWeight: 700, background: comp.isFirst === opt.v ? '#f0fdf4' : '#f8fbff', color: comp.isFirst === opt.v ? '#1a3a2a' : '#9aaa9a' }}>{opt.label}</div>
                     ))}
                   </div><Err f={`c_${i}_isFirst`} />
                 </div>
@@ -411,8 +424,7 @@ export default function Home() {
               </div>
             ))}
 
-            <button onClick={() => setCompanions(c => [...c, { lastName: '', firstName: '', isFirst: null, relation: '', party: null }])}
-              style={{ width: '100%', padding: '13px', borderRadius: 11, border: '2px dashed #a3d9b0', background: 'transparent', color: '#2d7a4a', fontSize: 13, fontWeight: 700, cursor: 'pointer', marginBottom: 18 }}>
+            <button onClick={() => setCompanions(c => [...c, { lastName: '', firstName: '', isFirst: null, relation: '', party: null }])} style={{ width: '100%', padding: '13px', borderRadius: 11, border: '2px dashed #a3d9b0', background: 'transparent', color: '#2d7a4a', fontSize: 13, fontWeight: 700, cursor: 'pointer', marginBottom: 18 }}>
               ＋ 同伴者を追加する
             </button>
 
@@ -429,17 +441,17 @@ export default function Home() {
               </div>
             )}
 
-           <div style={{ background: '#fff', borderRadius: 12, padding: '16px 20px', marginBottom: 12 }}>
-                <Lbl>都道府県</Lbl>
-                <select value={form.prefecture} onChange={e => setForm({ ...form, prefecture: e.target.value })} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1.5px solid #d4eadc', fontSize: 14, background: '#fff' }}>
-                  <option value="">選択してください</option>
-                  {['北海道','青森県','岩手県','宮城県','秋田県','山形県','福島県','茨城県','栃木県','群馬県','埼玉県','千葉県','東京都','神奈川県','新潟県','富山県','石川県','福井県','山梨県','長野県','岐阜県','静岡県','愛知県','三重県','滋賀県','京都府','大阪府','兵庫県','奈良県','和歌山県','鳥取県','島根県','岡山県','広島県','山口県','徳島県','香川県','愛媛県','高知県','福岡県','佐賀県','長崎県','熊本県','大分県','宮崎県','鹿児島県','沖縄県'].map(p => <option key={p} value={p}>{p}</option>)}
-                </select>
-              </div>
+            <div style={{ background: '#fff', borderRadius: 12, padding: '16px 20px', marginBottom: 12 }}>
+              <Lbl>都道府県</Lbl>
+              <select value={form.prefecture} onChange={e => setForm({ ...form, prefecture: e.target.value })} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1.5px solid #d4eadc', fontSize: 14, background: '#fff' }}>
+                <option value="">選択してください</option>
+                {['北海道','青森県','岩手県','宮城県','秋田県','山形県','福島県','茨城県','栃木県','群馬県','埼玉県','千葉県','東京都','神奈川県','新潟県','富山県','石川県','福井県','山梨県','長野県','岐阜県','静岡県','愛知県','三重県','滋賀県','京都府','大阪府','兵庫県','奈良県','和歌山県','鳥取県','島根県','岡山県','広島県','山口県','徳島県','香川県','愛媛県','高知県','福岡県','佐賀県','長崎県','熊本県','大分県','宮崎県','鹿児島県','沖縄県'].map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </div>
+
             <div style={{ background: '#fff', borderRadius: 12, padding: '16px 20px', marginBottom: 18, border: '1px solid #d4eadc' }}>
               <Lbl>備考・ご要望（任意）</Lbl>
-              <textarea value={form.remarks} onChange={e => setForm({ ...form, remarks: e.target.value })} placeholder="" rows={3}
-                style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1.5px solid #dde8f5', fontSize: 13, background: '#f8fbff', color: '#1a2a3a', resize: 'vertical', lineHeight: 1.7, boxSizing: 'border-box' as const }} />
+              <textarea value={form.remarks} onChange={e => setForm({ ...form, remarks: e.target.value })} placeholder="" rows={3} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1.5px solid #dde8f5', fontSize: 13, background: '#f8fbff', color: '#1a2a3a', resize: 'vertical', lineHeight: 1.7, boxSizing: 'border-box' as const }} />
             </div>
 
             <div style={{ display: 'flex', gap: 10 }}>
@@ -459,14 +471,16 @@ export default function Home() {
             {willWait && (
               <div style={{ background: '#fffbeb', border: '1.5px solid #fcd34d', borderRadius: 10, padding: '12px 16px', marginBottom: 14 }}>
                 <div style={{ fontSize: 12, fontWeight: 800, color: '#92400e', marginBottom: 3 }}>⏳ キャンセル待ちを含むお申込みです</div>
-                <div style={{ fontSize: 12, color: '#b45309' }}>確定：{confirmCount}名　／　キャンセル待ち：{waitCount}名</div>
+                <div style={{ fontSize: 12, color: '#b45309' }}>確定：{confirmCount}名 ／ キャンセル待ち：{waitCount}名</div>
               </div>
             )}
             <div style={{ background: '#f0fdf4', borderRadius: 10, padding: '14px 16px', marginBottom: 12 }}>
               <div style={{ fontSize: 11, color: '#166534', fontWeight: 800, marginBottom: 10 }}>▶ 代表者</div>
               {[
                 ['お名前', `${form.lastName} ${form.firstName}（${form.lastNameKana} ${form.firstNameKana}）`],
-                ['メール', form.email], ['電話', form.phone], ['担当販売店', selectedShop?.name || ''],
+                ['メール', form.email],
+                ['電話', form.phone],
+                ['担当販売店', selectedShop?.name || ''],
                 ['参加区分', form.isFirst ? '🆕 初回参加' : '↩️ リピート参加'],
                 ['懇親会', form.party ? `🙋 参加（¥${EVENT.party.fee.toLocaleString()}）` : '🙅 不参加'],
               ].map(([l, v]) => (
@@ -514,9 +528,7 @@ export default function Home() {
             {!agreed && <div style={{ fontSize: 11, color: '#ef4444', marginBottom: 12 }}>同意が必要です</div>}
             <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
               <button onClick={() => setStep(1)} style={{ flex: 1, padding: '13px', borderRadius: 11, border: '1.5px solid #d4eadc', background: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: '#6a8070' }}>← 修正する</button>
-              <button onClick={handleNext} disabled={!agreed || submitting}
-                style={{ flex: 2, padding: '13px', borderRadius: 11, border: 'none', cursor: agreed && !submitting ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 800,
-                  background: agreed && !submitting ? 'linear-gradient(135deg,#1a3a2a,#2d7a4a)' : '#e5e7eb', color: agreed && !submitting ? '#fff' : '#9ca3af' }}>
+              <button onClick={handleNext} disabled={!agreed || submitting} style={{ flex: 2, padding: '13px', borderRadius: 11, border: 'none', cursor: agreed && !submitting ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 800, background: agreed && !submitting ? 'linear-gradient(135deg,#1a3a2a,#2d7a4a)' : '#e5e7eb', color: agreed && !submitting ? '#fff' : '#9ca3af' }}>
                 {submitting ? '送信中...' : '送信する ✓'}
               </button>
             </div>
@@ -535,13 +547,25 @@ export default function Home() {
                 ? 'キャンセル待ちを受け付けました。空きが出た場合、申込順に参加確定のご連絡をいたします。'
                 : '確認メールをお送りしました。当日のご参加をお待ちしております！'}
             </p>
-            <button onClick={() => { setStep(0); setForm({ lastName: '', firstName: '', lastNameKana: '', firstNameKana: '', email: '', emailConfirm: '', phone: '', shopId: '', isFirst: null, party: null, prefecture: '', remarks: '' }); setCompanions([]); setAgreed(false); setSubmitted(null); }}
-              style={{ padding: '10px 24px', borderRadius: 10, border: '1.5px solid #d4eadc', background: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', color: '#6a8070' }}>
-              別の方の申込みをする
-            </button>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button onClick={() => { setStep(0); setForm({ lastName: '', firstName: '', lastNameKana: '', firstNameKana: '', email: '', emailConfirm: '', phone: '', shopId: '', isFirst: null, party: null, prefecture: '', remarks: '' }); setCompanions([]); setAgreed(false); setSubmitted(null); }} style={{ padding: '10px 24px', borderRadius: 10, border: '1.5px solid #d4eadc', background: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', color: '#6a8070' }}>
+                別の方の申込みをする
+              </button>
+              <button onClick={() => router.push('/events')} style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#1a3a2a,#2d7a4a)', fontSize: 12, fontWeight: 700, cursor: 'pointer', color: '#fff' }}>
+                イベント一覧へ
+              </button>
+            </div>
           </div>
         )}
       </div>
     </div>
   )
 }
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', fontSize: 16, color: '#2d7a4a' }}>読み込み中...</div>}>
+      <HomeContent />
+    </Suspense>
+  )
+                }
