@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
     // 申込者へメール送信
     if (!isCancel || isPromote) {
       await resend.emails.send({
-        from: 'シリカ工場見学会 <onboarding@resend.dev>',
+              from: 'シリカ工場見学会 <noreply@you-planning.org>',
         to: participant.email,
         subject: getSubject(),
         html: getUserHtml(),
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
     // キャンセルの場合も申込者にメール
     if (isCancel) {
       await resend.emails.send({
-        from: 'シリカ工場見学会 <onboarding@resend.dev>',
+              from: 'シリカ工場見学会 <noreply@you-planning.org>',
         to: participant.email,
         subject: getSubject(),
         html: getUserHtml(),
@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
     // スタッフ全員に通知メール
     for (const staffEmail of STAFF_EMAILS) {
       await resend.emails.send({
-        from: 'シリカ工場見学会システム <onboarding@resend.dev>',
+                  from: 'シリカ工場見学会システム <noreply@you-planning.org>',
         to: staffEmail,
         subject: `【管理通知】${getSubject()}`,
         html: getStaffHtml(),
