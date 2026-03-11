@@ -450,7 +450,7 @@ function HomeContent() {
             </div>
 
             <div style={{ background: '#fff', borderRadius: 12, padding: '16px 20px', marginBottom: 18, border: '1px solid #d4eadc' }}>
-              <Lbl>シリカ製品について聆いてみたいこと（複数可）</Lbl>
+              <Lbl>シリカ製品について聞いてみたいこと（複数可）</Lbl>
               <textarea value={form.remarks} onChange={e => setForm({ ...form, remarks: e.target.value })} placeholder="" rows={3} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1.5px solid #dde8f5', fontSize: 13, background: '#f8fbff', color: '#1a2a3a', resize: 'vertical', lineHeight: 1.7, boxSizing: 'border-box' as const }} />
             </div>
 
