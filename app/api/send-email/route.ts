@@ -1,7 +1,12 @@
 import { Resend } from 'resend'
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 // スタッフ通知先メールアドレス（ここに追加してください）
 const STAFF_EMAILS = [
@@ -23,6 +28,21 @@ export async function POST(request: NextRequest) {
     const isWaiting = participant.status === 'waiting'
     const isCancel = type === 'cancel'
     const isPromote = type === 'promote'
+
+    // 担当販売者のメールアドレスをSupabaseから取得
+    let shopEmail: string | null = null
+    let shopName: string | null = null
+    if (participant.shop_id) {
+      const { data: shopData } = await supabase
+        .from('shops')
+        .select('name, email')
+        .eq('id', participant.shop_id)
+        .single()
+      if (shopData?.email) {
+        shopEmail = shopData.email
+        shopName = shopData.name
+      }
+    }
 
     // 件名
     const getSubject = () => {
@@ -109,9 +129,30 @@ export async function POST(request: NextRequest) {
           <p style="margin:0 0 12px;"><strong>【ステータス】</strong><br>${isCancel ? 'キャンセル' : isPromote ? '確定（昇格）' : isWaiting ? `キャンセル待ち ${participant.wait_no}番` : '参加確定'}　申込人数${totalCount}名（代表者1名${companions.length > 0 ? ` + 同伴者${companions.length}名` : ''}）</p>
           <p style="margin:0 0 12px;"><strong>【懇親会】</strong><br>${partyCount > 0 ? `参加 ${partyCount}名（¥${partyTotal.toLocaleString()}）` : '不参加'}</p>
           ${participant.remarks ? `<p style="margin:0 0 12px;"><strong>【備考】</strong><br>${participant.remarks}</p>` : ''}
+          ${shopName ? `<p style="margin:0 0 12px;"><strong>【担当販売者】</strong><br>${shopName}</p>` : ''}
           <div style="margin-top:20px;text-align:center;">
             <a href="https://silica-tour.vercel.app/staff" style="background:#1a3a2a;color:#fff;padding:10px 24px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:bold;">管理画面を開く</a>
           </div>
+        </div>
+      </div>
+    `
+
+    // 販売者への通知メール本文
+    const getShopHtml = () => `
+      <div style="font-family:'Hiragino Kaku Gothic ProN','Meiryo',sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+        <div style="background:${isCancel ? '#ef4444' : '#1a3a2a'};padding:16px 20px;border-radius:8px 8px 0 0;">
+          <h2 style="color:#fff;font-size:16px;margin:0;">
+            ${isCancel ? '🚫 キャンセル通知' : '📝 担当のお客様からの申込みです'}
+          </h2>
+        </div>
+        <div style="background:#fff;padding:24px;border:1px solid #ddd;border-top:none;border-radius:0 0 8px 8px;font-size:14px;line-height:2;">
+          <p style="margin:0 0 16px;color:#333;">${shopName} 様<br>担当のお客様から${isCancel ? 'キャンセルの連絡' : '見学会のお申込み'}がありました。</p>
+          <p style="margin:0 0 12px;"><strong>【お客様お名前】</strong><br>${participant.last_name} ${participant.first_name}（${participant.last_name_kana} ${participant.first_name_kana}）</p>
+          <p style="margin:0 0 12px;"><strong>【メールアドレス】</strong><br>${participant.email}</p>
+          <p style="margin:0 0 12px;"><strong>【電話】</strong><br>${participant.phone}</p>
+          <p style="margin:0 0 12px;"><strong>【ステータス】</strong><br>${isCancel ? 'キャンセル' : isWaiting ? `キャンセル待ち ${participant.wait_no}番` : '参加確定'}　申込人数${totalCount}名</p>
+          ${partyCount > 0 ? `<p style="margin:0 0 12px;"><strong>【懇親会】</strong><br>参加 ${partyCount}名（¥${partyTotal.toLocaleString()}）</p>` : ''}
+          ${participant.remarks ? `<p style="margin:0 0 12px;"><strong>【備考】</strong><br>${participant.remarks}</p>` : ''}
         </div>
       </div>
     `
@@ -143,6 +184,16 @@ export async function POST(request: NextRequest) {
         to: staffEmail,
         subject: getSubject(),
         html: getStaffHtml(),
+      })
+    }
+
+    // 担当販売者に通知メール（メールアドレスがある場合のみ）
+    if (shopEmail) {
+      await resend.emails.send({
+        from: 'シリカ工場見学会システム <noreply@you-planning.org>',
+        to: shopEmail,
+        subject: getSubject(),
+        html: getShopHtml(),
       })
     }
 
