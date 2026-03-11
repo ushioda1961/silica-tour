@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase'
 
 type Role = 'admin' | 'agent' | 'shop' | 'maker'
 type UserInfo = { login_id: string; role: Role; shop_id: string | null }
-type Participant = {h
+type Participant = {
   id: string; last_name: string; first_name: string; last_name_kana: string; first_name_kana: string
   email: string; phone: string; shop_id: string
   is_first: boolean; party: boolean
