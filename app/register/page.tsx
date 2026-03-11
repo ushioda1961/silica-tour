@@ -26,7 +26,7 @@ function RegisterForm() {
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [party, setParty] = useState(false)
-  const [shopName, setShopName] = useState('')
+  const [shopId, setShopId] = useState('')
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
@@ -45,8 +45,8 @@ function RegisterForm() {
   }, [eventId])
 
   const handleSubmit = async () => {
-    if (!lastName || !firstName || !email) {
-      setError('姓・名・メールアドレスは必須です')
+    if (!lastName || !firstName || !email || !phone) {
+      setError('姓・名・メールアドレス・電話番号は必須です')
       return
     }
     setLoading(true)
@@ -61,12 +61,13 @@ function RegisterForm() {
         email,
         phone,
         party,
-        shop_name: shopName,
+        shop_id: shopId || null,
         status: 'confirmed',
       })
 
     if (dbError) {
-      setError('登録に失敗しました。もう一度お試しください。')
+      console.error('DB error:', dbError)
+      setError('登録に失敗しました: ' + dbError.message)
       setLoading(false)
       return
     }
@@ -81,7 +82,7 @@ function RegisterForm() {
         eventTitle: event?.title ?? '',
         eventDate: event?.date ?? '',
         eventTime: event ? event.time_start + ' ～ ' + event.time_end : '',
-        shopName,
+        shopName: shopId || '',
         party,
       }),
     })
@@ -162,7 +163,7 @@ function RegisterForm() {
           </div>
 
           <div>
-            <label style={{ color: '#aaa', fontSize: 12, display: 'block', marginBottom: 6 }}>電話番号</label>
+            <label style={{ color: '#aaa', fontSize: 12, display: 'block', marginBottom: 6 }}>電話番号 <span style={{ color: '#f87' }}>*</span></label>
             <input
               type="tel"
               value={phone}
@@ -173,10 +174,10 @@ function RegisterForm() {
           </div>
 
           <div>
-            <label style={{ color: '#aaa', fontSize: 12, display: 'block', marginBottom: 6 }}>担当販売店名</label>
+            <label style={{ color: '#aaa', fontSize: 12, display: 'block', marginBottom: 6 }}>担当販売店ID</label>
             <input
-              value={shopName}
-              onChange={e => setShopName(e.target.value)}
+              value={shopId}
+              onChange={e => setShopId(e.target.value)}
               placeholder="（なければ空白でOK）"
               style={{ width: '100%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 8, padding: '10px 12px', color: '#fff', fontSize: 15, boxSizing: 'border-box' }}
             />
