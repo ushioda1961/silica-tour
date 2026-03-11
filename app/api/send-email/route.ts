@@ -6,7 +6,7 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 // スタッフ通知先メールアドレス（ここに追加してください）
 const STAFF_EMAILS = [
   'u-mail@ushioda-masaaki.com',
-    'lotuseveil@gmail.com',
+  'lotuseveil@gmail.com',
   // 'staff2@example.com',  // 2人目のスタッフ
   // 'staff3@example.com',  // 3人目のスタッフ
 ]
@@ -26,10 +26,10 @@ export async function POST(request: NextRequest) {
 
     // 件名
     const getSubject = () => {
-      if (isCancel) return `【キャンセル】${participant.last_name} ${participant.first_name}様 - シリカ工場見学会`
-      if (isPromote) return `【参加確定】${participant.last_name} ${participant.first_name}様 - シリカ工場見学会`
-      if (isWaiting) return `【キャンセル待ち受付】${participant.last_name} ${participant.first_name}様 - シリカ工場見学会`
-      return `【申込完了】${participant.last_name} ${participant.first_name}様 - シリカ工場見学会`
+      if (isCancel) return `【シリカ工場見学】キャンセルです`
+      if (isPromote) return `【シリカ工場見学】参加確定です`
+      if (isWaiting) return `【シリカ工場見学】キャンセル待ち申込です`
+      return `【シリカ工場見学】申込です`
     }
 
     // 申込者へのメール本文
@@ -65,7 +65,6 @@ export async function POST(request: NextRequest) {
               <p style="color:#2d7a4a;font-weight:bold;margin:0;">✅ 参加申込みを受け付けました</p>
             </div>
           `}
-          
           <table style="width:100%;border-collapse:collapse;font-size:13px;margin:16px 0;">
             <tr style="border-bottom:1px solid #e2e8f0;">
               <td style="padding:8px 0;color:#2d7a4a;font-weight:bold;width:120px;">開催日時</td>
@@ -82,7 +81,6 @@ export async function POST(request: NextRequest) {
             </tr>
             ` : ''}
           </table>
-
           <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px 16px;margin-top:16px;">
             <p style="color:#92400e;font-size:12px;font-weight:bold;margin:0 0 4px;">⚠️ 注意事項</p>
             <ul style="color:#78350f;font-size:12px;margin:0;padding-left:16px;line-height:1.8;">
@@ -101,20 +99,17 @@ export async function POST(request: NextRequest) {
       <div style="font-family:'Hiragino Kaku Gothic ProN','Meiryo',sans-serif;max-width:600px;margin:0 auto;padding:20px;">
         <div style="background:${isCancel ? '#ef4444' : isPromote ? '#2d7a4a' : isWaiting ? '#d97706' : '#1a3a2a'};padding:16px 20px;border-radius:8px 8px 0 0;">
           <h2 style="color:#fff;font-size:16px;margin:0;">
-            ${isCancel ? '🚫 キャンセル通知' : isPromote ? '✅ 昇格通知' : isWaiting ? '⏳ キャンセル待ち通知' : '📝 新規申込み通知'}
+            ${isCancel ? '🚫 キャンセル' : isPromote ? '✅ 参加確定（昇格）' : isWaiting ? '⏳ キャンセル待ち申込' : '📝 新規申込み'}
           </h2>
         </div>
-        <div style="background:#fff;padding:20px;border:1px solid #ddd;border-top:none;border-radius:0 0 8px 8px;">
-          <table style="width:100%;border-collapse:collapse;font-size:13px;">
-            <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:8px 0;color:#666;width:120px;">お名前</td><td style="padding:8px 0;font-weight:bold;">${participant.last_name} ${participant.first_name}（${participant.last_name_kana} ${participant.first_name_kana}）</td></tr>
-            <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:8px 0;color:#666;">メール</td><td style="padding:8px 0;">${participant.email}</td></tr>
-            <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:8px 0;color:#666;">電話</td><td style="padding:8px 0;">${participant.phone}</td></tr>
-            <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:8px 0;color:#666;">ステータス</td><td style="padding:8px 0;">${isCancel ? 'キャンセル' : isPromote ? '確定（昇格）' : isWaiting ? `キャンセル待ち ${participant.wait_no}番` : '参加確定'}</td></tr>
-            <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:8px 0;color:#666;">申込人数</td><td style="padding:8px 0;">${totalCount}名（代表者1名${companions.length > 0 ? ` + 同伴者${companions.length}名` : ''}）</td></tr>
-            <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:8px 0;color:#666;">懇親会</td><td style="padding:8px 0;">${partyCount > 0 ? `参加 ${partyCount}名（¥${partyTotal.toLocaleString()}）` : '不参加'}</td></tr>
-            ${participant.remarks ? `<tr><td style="padding:8px 0;color:#666;">備考</td><td style="padding:8px 0;">${participant.remarks}</td></tr>` : ''}
-          </table>
-          <div style="margin-top:16px;text-align:center;">
+        <div style="background:#fff;padding:24px;border:1px solid #ddd;border-top:none;border-radius:0 0 8px 8px;font-size:14px;line-height:2;">
+          <p style="margin:0 0 12px;"><strong>【新規申込者お名前】</strong><br>${participant.last_name} ${participant.first_name}（${participant.last_name_kana} ${participant.first_name_kana}）</p>
+          <p style="margin:0 0 12px;"><strong>【メールアドレス】</strong><br>${participant.email}</p>
+          <p style="margin:0 0 12px;"><strong>【電話】</strong><br>${participant.phone}</p>
+          <p style="margin:0 0 12px;"><strong>【ステータス】</strong><br>${isCancel ? 'キャンセル' : isPromote ? '確定（昇格）' : isWaiting ? `キャンセル待ち ${participant.wait_no}番` : '参加確定'}　申込人数${totalCount}名（代表者1名${companions.length > 0 ? ` + 同伴者${companions.length}名` : ''}）</p>
+          <p style="margin:0 0 12px;"><strong>【懇親会】</strong><br>${partyCount > 0 ? `参加 ${partyCount}名（¥${partyTotal.toLocaleString()}）` : '不参加'}</p>
+          ${participant.remarks ? `<p style="margin:0 0 12px;"><strong>【備考】</strong><br>${participant.remarks}</p>` : ''}
+          <div style="margin-top:20px;text-align:center;">
             <a href="https://silica-tour.vercel.app/staff" style="background:#1a3a2a;color:#fff;padding:10px 24px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:bold;">管理画面を開く</a>
           </div>
         </div>
@@ -124,7 +119,7 @@ export async function POST(request: NextRequest) {
     // 申込者へメール送信
     if (!isCancel || isPromote) {
       await resend.emails.send({
-              from: 'シリカ工場見学会 <noreply@you-planning.org>',
+        from: 'シリカ工場見学会 <noreply@you-planning.org>',
         to: participant.email,
         subject: getSubject(),
         html: getUserHtml(),
@@ -134,7 +129,7 @@ export async function POST(request: NextRequest) {
     // キャンセルの場合も申込者にメール
     if (isCancel) {
       await resend.emails.send({
-              from: 'シリカ工場見学会 <noreply@you-planning.org>',
+        from: 'シリカ工場見学会 <noreply@you-planning.org>',
         to: participant.email,
         subject: getSubject(),
         html: getUserHtml(),
@@ -144,9 +139,9 @@ export async function POST(request: NextRequest) {
     // スタッフ全員に通知メール
     for (const staffEmail of STAFF_EMAILS) {
       await resend.emails.send({
-                  from: 'シリカ工場見学会システム <noreply@you-planning.org>',
+        from: 'シリカ工場見学会システム <noreply@you-planning.org>',
         to: staffEmail,
-        subject: `【管理通知】${getSubject()}`,
+        subject: getSubject(),
         html: getStaffHtml(),
       })
     }
