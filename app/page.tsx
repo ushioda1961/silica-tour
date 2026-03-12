@@ -254,6 +254,11 @@ function HomeContent() {
     <div style={{ fontFamily: "'Hiragino Kaku Gothic ProN','Meiryo',sans-serif", background: 'linear-gradient(170deg,#e8f4ff 0%,#f0f8ee 60%,#fffbe8 100%)', minHeight: '100vh' }}>
       {/* ãããã¼ */}
       <div style={{ background: 'linear-gradient(135deg,#1a3a2a,#2d5a3a)', padding: '0 24px' }}>
+                  <div style={{ textAlign: 'center', paddingTop: '18px', paddingBottom: '4px' }}>
+                                <span style={{ fontSize: 32, fontWeight: 900, color: '#fff', letterSpacing: '0.08em', textShadow: '0 2px 12px rgba(0,0,0,0.4)', fontFamily: "'Hiragino Kaku Gothic ProN','Meiryo',sans-serif" }}>
+                                                シリカ<span style={{ color: '#7ee8a2' }}>GO</span>
+                                                            </span>
+                                                                      </div>
         <div style={{ maxWidth: 680, margin: '0 auto', padding: '16px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ width: 36, height: 36, borderRadius: 9, background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>ð­</div>
