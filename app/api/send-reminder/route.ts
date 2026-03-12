@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '../../../lib/supabase'
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { supabase } = require('../../../lib/supabase')
 
 // Vercel Cron Job: 毎朝9時(JST)に実行
 // vercel.jsonで "0 0 * * *" (UTC 0時 = JST 9時) に設定
