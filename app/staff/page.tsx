@@ -568,7 +568,7 @@ export default function StaffPage() {
                 style={{ flex: 1, padding: '11px', borderRadius: 9, border: '1.5px solid #dde8f5', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#6a8090', fontWeight: 700 }}>戻る</button>
               <button onClick={() => confirmDialog.type === 'promote' ? handlePromote(confirmDialog.participant) : confirmDialog.type === 'delete' ? handleDelete(confirmDialog.participant) : handleCancel(confirmDialog.participant)}
                 style={{ flex: 1, padding: '11px', borderRadius: 9, border: 'none', fontSize: 13, fontWeight: 800, cursor: 'pointer', background: confirmDialog.type === 'promote' ? 'linear-gradient(135deg,#1a3a2a,#2d7a4a)' : '#ef4444', color: '#fff' }}>
-                {confirmDialog.type === 'promote' ? '昇格する' : 'キャンセルする'}
+                {confirmDialog.type === 'promote' ? '昇格する' : '削除する'}
               </button>
             </div>
           </div>
