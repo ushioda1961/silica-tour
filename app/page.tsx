@@ -258,6 +258,7 @@ function HomeContent() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ width: 36, height: 36, borderRadius: 9, background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>🏭</div>
             <div>
+              <div style={{ fontSize: 22, fontWeight: 900, color: '#7ee8a2', letterSpacing: '0.05em', textShadow: '0 0 10px rgba(100,230,150,0.6)' }}>⚡ シリカGO！</div>
               <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.1em' }}>FACTORY TOUR REGISTRATION</div>
               <div style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>工場見学会 参加申込</div>
             </div>
