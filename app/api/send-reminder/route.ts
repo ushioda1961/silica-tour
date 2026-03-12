@@ -1,26 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { supabase } = require('../../../lib/supabase')
+import { supabase } from '../../../lib/supabase'
 
 // Vercel Cron Job: 毎朝9時(JST)に実行
 // vercel.jsonで "0 0 * * *" (UTC 0時 = JST 9時) に設定
 export async function GET(req: NextRequest) {
-  // cronジョブからのリクエストか確認
   const authHeader = req.headers.get('authorization')
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
-    
-
-    // 7日後の日付を計算
     const today = new Date()
     const target = new Date(today)
     target.setDate(today.getDate() + 7)
-    const targetDate = target.toISOString().split('T')[0] // YYYY-MM-DD形式
+    const targetDate = target.toISOString().split('T')[0]
 
-    // 7日後にイベントがある参加確定の参加者を取得
     const { data: participants, error } = await supabase
       .from('participants')
       .select(`
@@ -39,7 +33,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ message: '7日後のイベント参加者なし', date: targetDate })
     }
 
-    // 各参加者にリマインドメールを送信
     let sentCount = 0
     const errors: string[] = []
 
@@ -86,7 +79,6 @@ https://share-me.design/ushiodamasaaki`
             text: emailBody,
           })
         })
-
         if (res.ok) {
           sentCount++
         } else {
@@ -99,7 +91,7 @@ https://share-me.design/ushiodamasaaki`
     }
 
     return NextResponse.json({
-      message: `リマインドメール送信完了`,
+      message: 'リマインドメール送信完了',
       targetDate,
       totalParticipants: participants.length,
       sentCount,
