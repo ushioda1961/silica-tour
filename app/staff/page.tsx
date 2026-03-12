@@ -385,7 +385,13 @@ export default function StaffPage() {
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' as const }}>
                       {p.party && <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(192,132,252,0.12)', border: '1px solid rgba(192,132,252,0.3)', borderRadius: 7, padding: '4px 10px', fontSize: 11, color: '#c084fc', fontWeight: 700 }}>🍻 懇親会参加</div>}
                       {(p as any).prefecture && <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 7, padding: '4px 10px', fontSize: 11, color: '#94a3b8' }}>📍 {(p as any).prefecture}</div>}
-                    </div>
+
+                    {(p as any).remarks && (
+                      <div style={{ marginTop: 10, padding: '10px 14px', background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.3)', borderRadius: 8 }}>
+                        <div style={{ fontSize: 11, color: '#fbbf24', marginBottom: 4, fontWeight: 600 }}>💬 質問事項</div>
+                        <div style={{ fontSize: 13, color: '#f1f5f9', lineHeight: 1.6 }}>{(p as any).remarks}</div>
+                      </div>
+                    )}                    </div>
 
                     {/* 同伴者 */}
                     {p.companions?.length > 0 && (
