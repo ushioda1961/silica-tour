@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '../../../lib/supabase'
+import { supabase } from '../../../lib/supabase'
 
 // Vercel Cron Job: 毎朝9時(JST)に実行
 // vercel.jsonで "0 0 * * *" (UTC 0時 = JST 9時) に設定
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const supabase = createClient()
+    
 
     // 7日後の日付を計算
     const today = new Date()
