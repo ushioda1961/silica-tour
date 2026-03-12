@@ -4,57 +4,57 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { supabase } from '../lib/supabase'
 
 const EVENT_STATIC = {
-  title: "シリカ製造工場 無料見学会",
-  fee: "無料",
-  type: "現地集合・現地解散",
-  parking: "駐車場はありません",
-  deadline: "定員となり次第締め切ります",
+  title: "ã·ãªã«è£½é å·¥å ´ ç¡æè¦å­¦ä¼",
+  fee: "ç¡æ",
+  type: "ç¾å°éåã»ç¾å°è§£æ£",
+  parking: "é§è»å ´ã¯ããã¾ãã",
+  deadline: "å®å¡ã¨ãªãæ¬¡ç¬¬ç· ãåãã¾ã",
   capacity: 50,
-  party: { title: "見学会後 懇親会", fee: 3000, time: "17:00〜19:00" },
+  party: { title: "è¦å­¦ä¼å¾ æè¦ªä¼", fee: 3000, time: "17:00ã19:00" },
 }
 
 const formatDate = (dateStr: string) => {
   if (!dateStr) return ''
   const d = new Date(dateStr)
-  const days = ['日', '月', '火', '水', '木', '金', '土']
+  const days = ['æ¥', 'æ', 'ç«', 'æ°´', 'æ¨', 'é', 'å']
   const y = d.getFullYear()
   const m = d.getMonth() + 1
   const day = d.getDate()
   const dow = days[d.getDay()]
-  return `${y}年${m}月${day}日（${dow}）`
+  return `${y}å¹´${m}æ${day}æ¥ï¼${dow}ï¼`
 }
 
 const formatTime = (t: string) => t?.slice(0, 5) || ''
 
 const shops = [
-  { id: "S01", name: "高橋明子" },
-  { id: "S02", name: "井上亜矢子" },
-  { id: "S03", name: "三矢智子" },
-  { id: "S04", name: "松元良子" },
-  { id: "S05", name: "伊藤美和" },
-  { id: "S06", name: "池尾里絵" },
-  { id: "S07", name: "吉村聖一" },
-  { id: "S08", name: "萱場豊明" },
-  { id: "S09", name: "増永美和" },
-  { id: "S10", name: "古田悦子" },
-  { id: "S11", name: "大関弘美" },
-  { id: "S12", name: "井上亜矢子" },
-  { id: "S13", name: "荒井聡子" },
-  { id: "S14", name: "宮田文明" },
-  { id: "S15", name: "辻直樹" },
-  { id: "S16", name: "高田利香" },
-  { id: "S17", name: "大久保富美" },
-  { id: "S18", name: "窪田純一" },
-  { id: "S19", name: "丹羽真弓" },
-  { id: "S20", name: "中野勝之" },
-  { id: "S21", name: "足田竜子" },
-  { id: "S22", name: "古瀬由美子" },
-  { id: "S23", name: "妻鹿かおり" },
-  { id: "S24", name: "ペロネ郁子" },
-  { id: "S25", name: "元吉望" },
-  { id: "S26", name: "前田有希子" },
-  { id: "S27", name: "古川裕和" },
-  { id: "S28", name: "林初子" },
+  { id: "S01", name: "é«æ©æå­" },
+  { id: "S02", name: "äºä¸äºç¢å­" },
+  { id: "S03", name: "ä¸ç¢æºå­" },
+  { id: "S04", name: "æ¾åè¯å­" },
+  { id: "S05", name: "ä¼è¤ç¾å" },
+  { id: "S06", name: "æ± å°¾éçµµ" },
+  { id: "S07", name: "åæèä¸" },
+  { id: "S08", name: "è±å ´è±æ" },
+  { id: "S09", name: "å¢æ°¸ç¾å" },
+  { id: "S10", name: "å¤ç°æ¦å­" },
+  { id: "S11", name: "å¤§é¢å¼ç¾" },
+  { id: "S12", name: "äºä¸äºç¢å­" },
+  { id: "S13", name: "èäºè¡å­" },
+  { id: "S14", name: "å®®ç°ææ" },
+  { id: "S15", name: "è¾»ç´æ¨¹" },
+  { id: "S16", name: "é«ç°å©é¦" },
+  { id: "S17", name: "å¤§ä¹ä¿å¯ç¾" },
+  { id: "S18", name: "çªªç°ç´ä¸" },
+  { id: "S19", name: "ä¸¹ç¾½çå¼" },
+  { id: "S20", name: "ä¸­éåä¹" },
+  { id: "S21", name: "è¶³ç°ç«å­" },
+  { id: "S22", name: "å¤ç¬ç±ç¾å­" },
+  { id: "S23", name: "å¦»é¹¿ããã" },
+  { id: "S24", name: "ãã­ãéå­" },
+  { id: "S25", name: "ååæ" },
+  { id: "S26", name: "åç°æå¸å­" },
+  { id: "S27", name: "å¤å·è£å" },
+  { id: "S28", name: "æåå­" },
 ]
 
 function HomeContent() {
@@ -117,7 +117,7 @@ function HomeContent() {
   const EVENT = {
     ...EVENT_STATIC,
     date: eventInfo ? formatDate(eventInfo.date) : '',
-    time: eventInfo ? `${formatTime(eventInfo.time_start)}〜${formatTime(eventInfo.time_end)}` : '',
+    time: eventInfo ? `${formatTime(eventInfo.time_start)}ã${formatTime(eventInfo.time_end)}` : '',
   }
 
   const remaining = EVENT.capacity - currentCount
@@ -133,21 +133,21 @@ function HomeContent() {
 
   const validate = () => {
     const e: Record<string, string> = {}
-    if (!form.lastName.trim()) e.lastName = '姓を入力してください'
-    if (!form.firstName.trim()) e.firstName = '名を入力してください'
-    if (!form.lastNameKana.trim()) e.lastNameKana = 'セイを入力してください'
-    if (!form.firstNameKana.trim()) e.firstNameKana = 'メイを入力してください'
-    if (!form.email.trim()) e.email = 'メールアドレスを入力してください'
-    else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = '形式が正しくありません'
-    if (form.email !== form.emailConfirm) e.emailConfirm = 'メールアドレスが一致しません'
-    if (!form.phone.trim()) e.phone = '電話番号を入力してください'
-    if (!form.shopId) e.shopId = '販売店を選択してください'
-    if (form.isFirst === null) e.isFirst = '参加区分を選択してください'
-    if (form.party === null) e.party = '懇親会の参加有無を選択してください'
+    if (!form.lastName.trim()) e.lastName = 'å§ãå¥åãã¦ãã ãã'
+    if (!form.firstName.trim()) e.firstName = 'åãå¥åãã¦ãã ãã'
+    if (!form.lastNameKana.trim()) e.lastNameKana = 'ã»ã¤ãå¥åãã¦ãã ãã'
+    if (!form.firstNameKana.trim()) e.firstNameKana = 'ã¡ã¤ãå¥åãã¦ãã ãã'
+    if (!form.email.trim()) e.email = 'ã¡ã¼ã«ã¢ãã¬ã¹ãå¥åãã¦ãã ãã'
+    else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = 'å½¢å¼ãæ­£ããããã¾ãã'
+    if (form.email !== form.emailConfirm) e.emailConfirm = 'ã¡ã¼ã«ã¢ãã¬ã¹ãä¸è´ãã¾ãã'
+    if (!form.phone.trim()) e.phone = 'é»è©±çªå·ãå¥åãã¦ãã ãã'
+    if (!form.shopId) e.shopId = 'è²©å£²åºãé¸æãã¦ãã ãã'
+    if (form.isFirst === null) e.isFirst = 'åå åºåãé¸æãã¦ãã ãã'
+    if (form.party === null) e.party = 'æè¦ªä¼ã®åå æç¡ãé¸æãã¦ãã ãã'
     companions.forEach((c, i) => {
-      if (!c.lastName?.trim()) e[`c_${i}_name`] = '名前を入力してください'
-      if (c.isFirst === null || c.isFirst === undefined) e[`c_${i}_isFirst`] = '参加区分を選択してください'
-      if (c.party === null || c.party === undefined) e[`c_${i}_party`] = '懇親会の参加有無を選択してください'
+      if (!c.lastName?.trim()) e[`c_${i}_name`] = 'ååãå¥åãã¦ãã ãã'
+      if (c.isFirst === null || c.isFirst === undefined) e[`c_${i}_isFirst`] = 'åå åºåãé¸æãã¦ãã ãã'
+      if (c.party === null || c.party === undefined) e[`c_${i}_party`] = 'æè¦ªä¼ã®åå æç¡ãé¸æãã¦ãã ãã'
     })
     setErrors(e)
     return Object.keys(e).length === 0
@@ -194,7 +194,7 @@ function HomeContent() {
       setStep(3)
       if (eventId) fetchCount(eventId)
     } catch (e) {
-      alert('申込中にエラーが発生しました。もう一度お試しください。')
+      alert('ç³è¾¼ä¸­ã«ã¨ã©ã¼ãçºçãã¾ãããããä¸åº¦ãè©¦ããã ããã')
     }
     setSubmitting(false)
   }
@@ -205,7 +205,7 @@ function HomeContent() {
     setStep(s => s + 1)
   }
 
-  const Req = () => <span style={{ fontSize: 10, background: '#ef4444', color: '#fff', padding: '1px 5px', borderRadius: 3, marginLeft: 5, fontWeight: 700 }}>必須</span>
+  const Req = () => <span style={{ fontSize: 10, background: '#ef4444', color: '#fff', padding: '1px 5px', borderRadius: 3, marginLeft: 5, fontWeight: 700 }}>å¿é </span>
   const Err = ({ f }: { f: string }) => errors[f] ? <div style={{ fontSize: 11, color: '#ef4444', marginTop: 3 }}>{errors[f]}</div> : null
   const Lbl = ({ children }: { children: React.ReactNode }) => <div style={{ fontSize: 12, fontWeight: 700, color: '#4a6080', marginBottom: 6 }}>{children}</div>
   const inpStyle = (field: string) => ({
@@ -218,11 +218,11 @@ function HomeContent() {
 
   const PartySelect = ({ value, onChange, errKey }: { value: boolean | null, onChange: (v: boolean) => void, errKey?: string }) => (
     <div>
-      <Lbl>🍻 懇親会（{EVENT.party.time}）<Req /></Lbl>
+      <Lbl>ð» æè¦ªä¼ï¼{EVENT.party.time}ï¼<Req /></Lbl>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
         {[
-          { v: true, icon: '🙋', label: '参加する', sub: `¥${EVENT.party.fee.toLocaleString()}`, color: '#2d7a4a', bg: '#f0fdf4', border: '#86efac' },
-          { v: false, icon: '🙅', label: '不参加', sub: '参加費なし', color: '#64748b', bg: '#f8faff', border: '#e2e8f0' },
+          { v: true, icon: 'ð', label: 'åå ãã', sub: `Â¥${EVENT.party.fee.toLocaleString()}`, color: '#2d7a4a', bg: '#f0fdf4', border: '#86efac' },
+          { v: false, icon: 'ð', label: 'ä¸åå ', sub: 'åå è²»ãªã', color: '#64748b', bg: '#f8faff', border: '#e2e8f0' },
         ].map(opt => (
           <div key={String(opt.v)} onClick={() => onChange(opt.v)} style={{ padding: '11px 10px', borderRadius: 10, border: `2px solid ${value === opt.v ? opt.border : '#e2e8f0'}`, cursor: 'pointer', textAlign: 'center', background: value === opt.v ? opt.bg : '#f8faff' }}>
             <div style={{ fontSize: 20, marginBottom: 3 }}>{opt.icon}</div>
@@ -237,72 +237,72 @@ function HomeContent() {
 
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', fontFamily: 'sans-serif', fontSize: 16, color: '#2d7a4a' }}>
-      読み込み中...
+      èª­ã¿è¾¼ã¿ä¸­...
     </div>
   )
 
   if (!eventId) return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', fontFamily: 'sans-serif', gap: 16 }}>
-      <div style={{ fontSize: 16, color: '#888' }}>イベントが見つかりません</div>
+      <div style={{ fontSize: 16, color: '#888' }}>ã¤ãã³ããè¦ã¤ããã¾ãã</div>
       <button onClick={() => router.push('/events')} style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#1a3a2a,#2d7a4a)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
-        イベント一覧へ戻る
+        ã¤ãã³ãä¸è¦§ã¸æ»ã
       </button>
     </div>
   )
 
   return (
     <div style={{ fontFamily: "'Hiragino Kaku Gothic ProN','Meiryo',sans-serif", background: 'linear-gradient(170deg,#e8f4ff 0%,#f0f8ee 60%,#fffbe8 100%)', minHeight: '100vh' }}>
-      {/* ヘッダー */}
+      {/* ãããã¼ */}
       <div style={{ background: 'linear-gradient(135deg,#1a3a2a,#2d5a3a)', padding: '0 24px' }}>
         <div style={{ maxWidth: 680, margin: '0 auto', padding: '16px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 9, background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>🏭</div>
+            <div style={{ width: 36, height: 36, borderRadius: 9, background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>ð­</div>
             <div>
               <div style={{ fontSize: 22, fontWeight: 900, color: '#7ee8a2', letterSpacing: '0.05em', textShadow: '0 0 10px rgba(100,230,150,0.6)' }}>⚡ シリカGO！</div>
               <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.1em' }}>FACTORY TOUR REGISTRATION</div>
-              <div style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>工場見学会 参加申込</div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>å·¥å ´è¦å­¦ä¼ åå ç³è¾¼</div>
             </div>
           </div>
           <button onClick={() => router.push('/events')} style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 7, padding: '5px 12px', cursor: 'pointer' }}>
-            ← 日程一覧
+            â æ¥ç¨ä¸è¦§
           </button>
         </div>
       </div>
 
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '26px 18px 64px' }}>
-        {/* 定員バー */}
+        {/* å®å¡ãã¼ */}
         {step < 3 && (
           <div style={{ background: '#fff', borderRadius: 14, padding: '16px 20px', marginBottom: 18, boxShadow: '0 2px 14px rgba(30,80,50,0.08)', border: '1px solid #d4eadc' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 10 }}>
               <div style={{ flex: 1, minWidth: 200 }}>
-                <div style={{ fontSize: 11, color: '#2d7a4a', fontWeight: 700, marginBottom: 3 }}>🏭 {EVENT.title}</div>
-                <div style={{ fontSize: 12, color: '#445' }}>📅 {EVENT.date} {EVENT.time}</div>
-                <div style={{ fontSize: 12, color: '#445', marginTop: 2 }}>🎫 {EVENT.fee} 🚗 {EVENT.parking}</div>
-                <div style={{ fontSize: 12, color: '#1a7a4a', marginTop: 2, fontWeight: 600 }}>🍻 懇親会あり（JR尾張一宮駅近辺のお店・{EVENT.party.time}・¥{EVENT.party.fee.toLocaleString()}）</div>
-                <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4, fontWeight: 700 }}>⚠️ {EVENT.deadline}</div>
+                <div style={{ fontSize: 11, color: '#2d7a4a', fontWeight: 700, marginBottom: 3 }}>ð­ {EVENT.title}</div>
+                <div style={{ fontSize: 12, color: '#445' }}>ð {EVENT.date} {EVENT.time}</div>
+                <div style={{ fontSize: 12, color: '#445', marginTop: 2 }}>ð« {EVENT.fee} ð {EVENT.parking}</div>
+                <div style={{ fontSize: 12, color: '#1a7a4a', marginTop: 2, fontWeight: 600 }}>ð» æè¦ªä¼ããï¼JRå°¾å¼µä¸å®®é§è¿è¾ºã®ãåºã»{EVENT.party.time}ã»Â¥{EVENT.party.fee.toLocaleString()}ï¼</div>
+                <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4, fontWeight: 700 }}>â ï¸ {EVENT.deadline}</div>
               </div>
               <div style={{ textAlign: 'center', minWidth: 90 }}>
-                <div style={{ fontSize: 10, color: '#888' }}>残り枠</div>
+                <div style={{ fontSize: 10, color: '#888' }}>æ®ãæ </div>
                 <div style={{ fontSize: 36, fontWeight: 900, lineHeight: 1, color: isFull ? '#ef4444' : remaining <= 5 ? '#f59e0b' : '#2d7a4a' }}>
-                  {remaining}<span style={{ fontSize: 13, color: '#aaa', marginLeft: 2 }}>名</span>
+                  {remaining}<span style={{ fontSize: 13, color: '#aaa', marginLeft: 2 }}>å</span>
                 </div>
-                {isFull && <div style={{ fontSize: 11, fontWeight: 800, color: '#ef4444', background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 6, padding: '2px 8px', marginTop: 4 }}>満員</div>}
+                {isFull && <div style={{ fontSize: 11, fontWeight: 800, color: '#ef4444', background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 6, padding: '2px 8px', marginTop: 4 }}>æºå¡</div>}
                 <div style={{ height: 5, width: 80, background: '#f0f0f0', borderRadius: 3, overflow: 'hidden', margin: '6px auto 0' }}>
                   <div style={{ height: '100%', width: `${fillPct}%`, background: isFull ? '#ef4444' : fillPct >= 80 ? '#f59e0b' : '#2d7a4a', borderRadius: 3 }} />
                 </div>
-                <div style={{ fontSize: 10, color: '#aaa', marginTop: 2 }}>{currentCount}/{EVENT.capacity}名</div>
+                <div style={{ fontSize: 10, color: '#aaa', marginTop: 2 }}>{currentCount}/{EVENT.capacity}å</div>
               </div>
             </div>
           </div>
         )}
 
-        {/* ステップ表示 */}
+        {/* ã¹ãããè¡¨ç¤º */}
         {step < 3 && (
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: 22 }}>
-            {['見学会について', '申込み情報', '確認・送信'].map((s, i) => (
+            {['è¦å­¦ä¼ã«ã¤ãã¦', 'ç³è¾¼ã¿æå ±', 'ç¢ºèªã»éä¿¡'].map((s, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', flex: i < 2 ? 1 : 'none' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <div style={{ width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, background: i < step ? '#2d7a4a' : i === step ? 'linear-gradient(135deg,#1a3a2a,#2d7a4a)' : '#e5e7eb', color: i <= step ? '#fff' : '#9ca3af' }}>{i < step ? '✓' : i + 1}</div>
+                  <div style={{ width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, background: i < step ? '#2d7a4a' : i === step ? 'linear-gradient(135deg,#1a3a2a,#2d7a4a)' : '#e5e7eb', color: i <= step ? '#fff' : '#9ca3af' }}>{i < step ? 'â' : i + 1}</div>
                   <span style={{ fontSize: 11, fontWeight: 600, color: i === step ? '#1a3a2a' : '#9ca3af', whiteSpace: 'nowrap' }}>{s}</span>
                 </div>
                 {i < 2 && <div style={{ flex: 1, height: 2, background: i < step ? '#2d7a4a' : '#e5e7eb', margin: '0 6px' }} />}
@@ -311,19 +311,19 @@ function HomeContent() {
           </div>
         )}
 
-        {/* STEP 0: 見学会について */}
+        {/* STEP 0: è¦å­¦ä¼ã«ã¤ãã¦ */}
         {step === 0 && (
           <div style={{ background: '#fff', borderRadius: 14, padding: '24px', boxShadow: '0 2px 14px rgba(30,80,50,0.07)', border: '1px solid #d4eadc' }}>
-            <h2 style={{ fontSize: 17, fontWeight: 900, color: '#1a3a2a', marginBottom: 6 }}>🏭 {EVENT.title}</h2>
-            <p style={{ fontSize: 13, color: '#6a8070', lineHeight: 1.8, marginBottom: 20 }}>シリカの製造工程を間近でご覧いただける貴重な機会です。ご参加をお待ちしております。</p>
+            <h2 style={{ fontSize: 17, fontWeight: 900, color: '#1a3a2a', marginBottom: 6 }}>ð­ {EVENT.title}</h2>
+            <p style={{ fontSize: 13, color: '#6a8070', lineHeight: 1.8, marginBottom: 20 }}>ã·ãªã«ã®è£½é å·¥ç¨ãéè¿ã§ãè¦§ããã ããè²´éãªæ©ä¼ã§ãããåå ããå¾ã¡ãã¦ããã¾ãã</p>
             <div style={{ marginBottom: 16 }}>
               {[
-                ['開催日時', `${EVENT.date} ${EVENT.time}`],
-                ['参加費', EVENT.fee],
-                ['集合・解散', EVENT.type],
-                ['駐車場', EVENT.parking],
-                ['定員', `${EVENT.capacity}名`],
-                ['申込締切', EVENT.deadline],
+                ['éå¬æ¥æ', `${EVENT.date} ${EVENT.time}`],
+                ['åå è²»', EVENT.fee],
+                ['éåã»è§£æ£', EVENT.type],
+                ['é§è»å ´', EVENT.parking],
+                ['å®å¡', `${EVENT.capacity}å`],
+                ['ç³è¾¼ç· å', EVENT.deadline],
               ].map(([l, v]) => (
                 <div key={l} style={{ display: 'flex', gap: 14, padding: '10px 0', borderBottom: '1px solid #f0f5f2' }}>
                   <span style={{ fontSize: 11, fontWeight: 700, color: '#2d7a4a', minWidth: 80 }}>{l}</span>
@@ -332,11 +332,11 @@ function HomeContent() {
               ))}
             </div>
             <div style={{ background: 'linear-gradient(135deg,#f0fdf4,#fffbeb)', border: '2px solid #a7f3d0', borderRadius: 12, padding: '16px 18px', marginBottom: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: '#1a3a2a', marginBottom: 10 }}>🍻 見学会後 懇親会</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: '#1a3a2a', marginBottom: 10 }}>ð» è¦å­¦ä¼å¾ æè¦ªä¼</div>
               {[
-                ['開催時間', EVENT.party.time],
-                ['参加費', `¥${EVENT.party.fee.toLocaleString()}（当日現金払い）`],
-                ['申込', '見学会申込と同時にお申込みいただけます'],
+                ['éå¬æé', EVENT.party.time],
+                ['åå è²»', `Â¥${EVENT.party.fee.toLocaleString()}ï¼å½æ¥ç¾éæãï¼`],
+                ['ç³è¾¼', 'è¦å­¦ä¼ç³è¾¼ã¨åæã«ãç³è¾¼ã¿ããã ãã¾ã'],
               ].map(([l, v]) => (
                 <div key={l} style={{ display: 'flex', gap: 12, padding: '7px 0', borderBottom: '1px solid #d1fae5' }}>
                   <span style={{ fontSize: 11, fontWeight: 700, color: '#2d7a4a', minWidth: 70 }}>{l}</span>
@@ -345,50 +345,50 @@ function HomeContent() {
               ))}
             </div>
             <div style={{ marginBottom: 20, padding: '13px 16px', background: '#fffbeb', borderRadius: 10, border: '1px solid #fde68a' }}>
-              <div style={{ fontSize: 12, color: '#92400e', fontWeight: 700, marginBottom: 4 }}>⚠️ 注意事項</div>
+              <div style={{ fontSize: 12, color: '#92400e', fontWeight: 700, marginBottom: 4 }}>â ï¸ æ³¨æäºé </div>
               <ul style={{ fontSize: 12, color: '#78350f', lineHeight: 1.9, margin: 0, paddingLeft: 16 }}>
-                <li>安全のため工場内ではスタッフの指示に従ってください</li>
-                <li>動きやすい服装・靴でお越しください</li>
-                <li>工場内での写真撮影は全てOKです。SNSへの投稿もOKです。</li>
-                <li>お車でのご来場はご遠慮ください</li>
+                <li>å®å¨ã®ããå·¥å ´åã§ã¯ã¹ã¿ããã®æç¤ºã«å¾ã£ã¦ãã ãã</li>
+                <li>åããããæè£ã»é´ã§ãè¶ããã ãã</li>
+                <li>å·¥å ´åã§ã®åçæ®å½±ã¯å¨ã¦OKã§ããSNSã¸ã®æç¨¿ãOKã§ãã</li>
+                <li>ãè»ã§ã®ãæ¥å ´ã¯ãé æ®ãã ãã</li>
               </ul>
             </div>
             <button onClick={() => setStep(1)} style={{ width: '100%', padding: '14px', borderRadius: 11, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 800, background: 'linear-gradient(135deg,#1a3a2a,#2d7a4a)', color: '#fff' }}>
-              {isFull ? 'キャンセル待ちで申込む →' : '参加申込みへ進む →'}
+              {isFull ? 'ã­ã£ã³ã»ã«å¾ã¡ã§ç³è¾¼ã â' : 'åå ç³è¾¼ã¿ã¸é²ã â'}
             </button>
           </div>
         )}
 
-        {/* STEP 1: 申込情報入力 */}
+        {/* STEP 1: ç³è¾¼æå ±å¥å */}
         {step === 1 && (
           <div>
             <div style={{ background: '#fff', borderRadius: 14, padding: '22px', marginBottom: 14, boxShadow: '0 2px 10px rgba(30,80,50,0.06)', border: '1px solid #d4eadc' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
-                <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg,#1a3a2a,#2d7a4a)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: '#fff', fontWeight: 800 }}>代</div>
-                <h3 style={{ fontSize: 14, fontWeight: 800, color: '#1a3a2a' }}>ご参加者様情報（グループの方は代表者）</h3>
+                <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg,#1a3a2a,#2d7a4a)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: '#fff', fontWeight: 800 }}>ä»£</div>
+                <h3 style={{ fontSize: 14, fontWeight: 800, color: '#1a3a2a' }}>ãåå èæ§æå ±ï¼ã°ã«ã¼ãã®æ¹ã¯ä»£è¡¨èï¼</h3>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
-                <div><Lbl>姓<Req /></Lbl><input value={form.lastName} onChange={e => setForm({ ...form, lastName: e.target.value })} placeholder="山田" style={inpStyle('lastName')} /><Err f="lastName" /></div>
-                <div><Lbl>名<Req /></Lbl><input value={form.firstName} onChange={e => setForm({ ...form, firstName: e.target.value })} placeholder="花子" style={inpStyle('firstName')} /><Err f="firstName" /></div>
+                <div><Lbl>å§<Req /></Lbl><input value={form.lastName} onChange={e => setForm({ ...form, lastName: e.target.value })} placeholder="å±±ç°" style={inpStyle('lastName')} /><Err f="lastName" /></div>
+                <div><Lbl>å<Req /></Lbl><input value={form.firstName} onChange={e => setForm({ ...form, firstName: e.target.value })} placeholder="è±å­" style={inpStyle('firstName')} /><Err f="firstName" /></div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
-                <div><Lbl>セイ<Req /></Lbl><input value={form.lastNameKana} onChange={e => setForm({ ...form, lastNameKana: e.target.value })} placeholder="ヤマダ" style={inpStyle('lastNameKana')} /><Err f="lastNameKana" /></div>
-                <div><Lbl>メイ<Req /></Lbl><input value={form.firstNameKana} onChange={e => setForm({ ...form, firstNameKana: e.target.value })} placeholder="ハナコ" style={inpStyle('firstNameKana')} /><Err f="firstNameKana" /></div>
+                <div><Lbl>ã»ã¤<Req /></Lbl><input value={form.lastNameKana} onChange={e => setForm({ ...form, lastNameKana: e.target.value })} placeholder="ã¤ãã" style={inpStyle('lastNameKana')} /><Err f="lastNameKana" /></div>
+                <div><Lbl>ã¡ã¤<Req /></Lbl><input value={form.firstNameKana} onChange={e => setForm({ ...form, firstNameKana: e.target.value })} placeholder="ããã³" style={inpStyle('firstNameKana')} /><Err f="firstNameKana" /></div>
               </div>
-              <div style={{ marginBottom: 12 }}><Lbl>メールアドレス<Req /></Lbl><input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="example@mail.com" style={inpStyle('email')} /><Err f="email" /></div>
-              <div style={{ marginBottom: 12 }}><Lbl>メールアドレス（確認）<Req /></Lbl><input type="email" value={form.emailConfirm} onChange={e => setForm({ ...form, emailConfirm: e.target.value })} placeholder="もう一度入力" style={inpStyle('emailConfirm')} /><Err f="emailConfirm" /></div>
-              <div style={{ marginBottom: 12 }}><Lbl>電話番号<Req /></Lbl><input type="tel" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="090-0000-0000" style={inpStyle('phone')} /><Err f="phone" /></div>
+              <div style={{ marginBottom: 12 }}><Lbl>ã¡ã¼ã«ã¢ãã¬ã¹<Req /></Lbl><input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="example@mail.com" style={inpStyle('email')} /><Err f="email" /></div>
+              <div style={{ marginBottom: 12 }}><Lbl>ã¡ã¼ã«ã¢ãã¬ã¹ï¼ç¢ºèªï¼<Req /></Lbl><input type="email" value={form.emailConfirm} onChange={e => setForm({ ...form, emailConfirm: e.target.value })} placeholder="ããä¸åº¦å¥å" style={inpStyle('emailConfirm')} /><Err f="emailConfirm" /></div>
+              <div style={{ marginBottom: 12 }}><Lbl>é»è©±çªå·<Req /></Lbl><input type="tel" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="090-0000-0000" style={inpStyle('phone')} /><Err f="phone" /></div>
               <div style={{ marginBottom: 14 }}>
-                <Lbl>担当販売店<Req /></Lbl>
+                <Lbl>æå½è²©å£²åº<Req /></Lbl>
                 <select value={form.shopId} onChange={e => setForm({ ...form, shopId: e.target.value })} style={{ ...inpStyle('shopId'), appearance: 'none' as const }}>
-                  <option value="">選択してください</option><option value="NONE">なし（代理店・直接参加）</option>
+                  <option value="">é¸æãã¦ãã ãã</option><option value="NONE">ãªãï¼ä»£çåºã»ç´æ¥åå ï¼</option>
                   {shops.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select><Err f="shopId" />
               </div>
               <div style={{ marginBottom: 16 }}>
-                <Lbl>見学会 参加区分<Req /></Lbl>
+                <Lbl>è¦å­¦ä¼ åå åºå<Req /></Lbl>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                  {[{ v: true, icon: '🆕', title: '初回参加', desc: '今回が初めて' }, { v: false, icon: '↩️', title: 'リピート', desc: '以前も参加あり' }].map(opt => (
+                  {[{ v: true, icon: 'ð', title: 'åååå ', desc: 'ä»åãåãã¦' }, { v: false, icon: 'â©ï¸', title: 'ãªãã¼ã', desc: 'ä»¥åãåå ãã' }].map(opt => (
                     <div key={String(opt.v)} onClick={() => setForm({ ...form, isFirst: opt.v })} style={{ padding: '12px', borderRadius: 10, border: `2px solid ${form.isFirst === opt.v ? '#2d7a4a' : '#dde8f5'}`, cursor: 'pointer', background: form.isFirst === opt.v ? '#f0fdf4' : '#f8fbff', textAlign: 'center' }}>
                       <div style={{ fontSize: 20 }}>{opt.icon}</div>
                       <div style={{ fontSize: 12, fontWeight: 700, color: form.isFirst === opt.v ? '#1a3a2a' : '#6a8090', marginTop: 3 }}>{opt.title}</div>
@@ -403,20 +403,20 @@ function HomeContent() {
             {companions.map((comp, i) => (
               <div key={i} style={{ background: '#fff', borderRadius: 13, padding: '20px 22px', marginBottom: 12, border: '2px solid #d4f0dc' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: '#2a4a2a' }}>同伴者 {i + 1}</span>
-                  <button onClick={() => setCompanions(c => c.filter((_, idx) => idx !== i))} style={{ fontSize: 11, color: '#ef4444', background: '#fff5f5', border: '1px solid #fca5a5', borderRadius: 6, padding: '3px 10px', cursor: 'pointer' }}>削除</button>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: '#2a4a2a' }}>åä¼´è {i + 1}</span>
+                  <button onClick={() => setCompanions(c => c.filter((_, idx) => idx !== i))} style={{ fontSize: 11, color: '#ef4444', background: '#fff5f5', border: '1px solid #fca5a5', borderRadius: 6, padding: '3px 10px', cursor: 'pointer' }}>åé¤</button>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
-                  <div><Lbl>姓<Req /></Lbl>
-                    <input value={comp.lastName || ''} onChange={e => setCompanions(c => c.map((x, idx) => idx === i ? { ...x, lastName: e.target.value } : x))} placeholder="山田" style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1.5px solid ${errors[`c_${i}_name`] ? '#fca5a5' : '#dde8f5'}`, fontSize: 13, background: '#f8fbff', color: '#1a2a3a', boxSizing: 'border-box' as const }} />
+                  <div><Lbl>å§<Req /></Lbl>
+                    <input value={comp.lastName || ''} onChange={e => setCompanions(c => c.map((x, idx) => idx === i ? { ...x, lastName: e.target.value } : x))} placeholder="å±±ç°" style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1.5px solid ${errors[`c_${i}_name`] ? '#fca5a5' : '#dde8f5'}`, fontSize: 13, background: '#f8fbff', color: '#1a2a3a', boxSizing: 'border-box' as const }} />
                     <Err f={`c_${i}_name`} /></div>
-                  <div><Lbl>名</Lbl>
-                    <input value={comp.firstName || ''} onChange={e => setCompanions(c => c.map((x, idx) => idx === i ? { ...x, firstName: e.target.value } : x))} placeholder="太郎" style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1.5px solid #dde8f5', fontSize: 13, background: '#f8fbff', color: '#1a2a3a', boxSizing: 'border-box' as const }} /></div>
+                  <div><Lbl>å</Lbl>
+                    <input value={comp.firstName || ''} onChange={e => setCompanions(c => c.map((x, idx) => idx === i ? { ...x, firstName: e.target.value } : x))} placeholder="å¤ªé" style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1.5px solid #dde8f5', fontSize: 13, background: '#f8fbff', color: '#1a2a3a', boxSizing: 'border-box' as const }} /></div>
                 </div>
                 <div style={{ marginBottom: 12 }}>
-                  <Lbl>参加区分<Req /></Lbl>
+                  <Lbl>åå åºå<Req /></Lbl>
                   <div style={{ display: 'flex', gap: 6 }}>
-                    {[{ v: true, label: '🆕 初回' }, { v: false, label: '↩️ リピート' }].map(opt => (
+                    {[{ v: true, label: 'ð åå' }, { v: false, label: 'â©ï¸ ãªãã¼ã' }].map(opt => (
                       <div key={String(opt.v)} onClick={() => setCompanions(c => c.map((x, idx) => idx === i ? { ...x, isFirst: opt.v } : x))} style={{ flex: 1, padding: '8px 4px', borderRadius: 7, border: `2px solid ${comp.isFirst === opt.v ? '#2d7a4a' : '#dde8f5'}`, cursor: 'pointer', textAlign: 'center', fontSize: 11, fontWeight: 700, background: comp.isFirst === opt.v ? '#f0fdf4' : '#f8fbff', color: comp.isFirst === opt.v ? '#1a3a2a' : '#9aaa9a' }}>{opt.label}</div>
                     ))}
                   </div><Err f={`c_${i}_isFirst`} />
@@ -426,64 +426,64 @@ function HomeContent() {
             ))}
 
             <button onClick={() => setCompanions(c => [...c, { lastName: '', firstName: '', isFirst: null, relation: '', party: null }])} style={{ width: '100%', padding: '13px', borderRadius: 11, border: '2px dashed #a3d9b0', background: 'transparent', color: '#2d7a4a', fontSize: 13, fontWeight: 700, cursor: 'pointer', marginBottom: 18 }}>
-              ＋ 同伴者を追加する
+              ï¼ åä¼´èãè¿½å ãã
             </button>
 
             {partyCount > 0 && (
               <div style={{ background: 'linear-gradient(135deg,#f0fdf4,#fffbeb)', border: '1.5px solid #a7f3d0', borderRadius: 12, padding: '14px 18px', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
-                  <div style={{ fontSize: 11, color: '#166534', fontWeight: 700 }}>🍻 懇親会参加者</div>
-                  <div style={{ fontSize: 13, color: '#1a3a2a', marginTop: 2 }}>{partyCount}名 × ¥{EVENT.party.fee.toLocaleString()}</div>
+                  <div style={{ fontSize: 11, color: '#166534', fontWeight: 700 }}>ð» æè¦ªä¼åå è</div>
+                  <div style={{ fontSize: 13, color: '#1a3a2a', marginTop: 2 }}>{partyCount}å Ã Â¥{EVENT.party.fee.toLocaleString()}</div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: 11, color: '#888' }}>当日お支払い合計</div>
-                  <div style={{ fontSize: 24, fontWeight: 900, color: '#2d7a4a' }}>¥{partyTotal.toLocaleString()}</div>
+                  <div style={{ fontSize: 11, color: '#888' }}>å½æ¥ãæ¯æãåè¨</div>
+                  <div style={{ fontSize: 24, fontWeight: 900, color: '#2d7a4a' }}>Â¥{partyTotal.toLocaleString()}</div>
                 </div>
               </div>
             )}
 
             <div style={{ background: '#fff', borderRadius: 12, padding: '16px 20px', marginBottom: 12 }}>
-              <Lbl>お住まいの都道府県</Lbl>
+              <Lbl>ãä½ã¾ãã®é½éåºç</Lbl>
               <select value={form.prefecture} onChange={e => setForm({ ...form, prefecture: e.target.value })} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1.5px solid #d4eadc', fontSize: 14, background: '#fff' }}>
-                <option value="">選択してください</option><option value="NONE">なし（代理店・直接参加）</option>
-                {['北海道','青森県','岩手県','宮城県','秋田県','山形県','福島県','茨城県','栃木県','群馬県','埼玉県','千葉県','東京都','神奈川県','新潟県','富山県','石川県','福井県','山梨県','長野県','岐阜県','静岡県','愛知県','三重県','滋賀県','京都府','大阪府','兵庫県','奈良県','和歌山県','鳥取県','島根県','岡山県','広島県','山口県','徳島県','香川県','愛媛県','高知県','福岡県','佐賀県','長崎県','熊本県','大分県','宮崎県','鹿児島県','沖縄県'].map(p => <option key={p} value={p}>{p}</option>)}
+                <option value="">é¸æãã¦ãã ãã</option><option value="NONE">ãªãï¼ä»£çåºã»ç´æ¥åå ï¼</option>
+                {['åæµ·é','éæ£®ç','å²©æç','å®®åç','ç§ç°ç','å±±å½¢ç','ç¦å³¶ç','è¨åç','æ æ¨ç','ç¾¤é¦¬ç','å¼çç','åèç','æ±äº¬é½','ç¥å¥å·ç','æ°æ½ç','å¯å±±ç','ç³å·ç','ç¦äºç','å±±æ¢¨ç','é·éç','å²éç','éå²¡ç','æç¥ç','ä¸éç','æ»è³ç','äº¬é½åº','å¤§éªåº','åµåº«ç','å¥è¯ç','åæ­å±±ç','é³¥åç','å³¶æ ¹ç','å²¡å±±ç','åºå³¶ç','å±±å£ç','å¾³å³¶ç','é¦å·ç','æåªç','é«ç¥ç','ç¦å²¡ç','ä½è³ç','é·å´ç','çæ¬ç','å¤§åç','å®®å´ç','é¹¿åå³¶ç','æ²ç¸ç'].map(p => <option key={p} value={p}>{p}</option>)}
               </select>
             </div>
 
             <div style={{ background: '#fff', borderRadius: 12, padding: '16px 20px', marginBottom: 18, border: '1px solid #d4eadc' }}>
-              <Lbl>シリカ製品について聞いてみたいこと（複数可）</Lbl>
+              <Lbl>ã·ãªã«è£½åã«ã¤ãã¦èãã¦ã¿ãããã¨ï¼è¤æ°å¯ï¼</Lbl>
               <textarea value={form.remarks} onChange={e => setForm({ ...form, remarks: e.target.value })} placeholder="" rows={3} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1.5px solid #dde8f5', fontSize: 13, background: '#f8fbff', color: '#1a2a3a', resize: 'vertical', lineHeight: 1.7, boxSizing: 'border-box' as const }} />
             </div>
 
             <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => setStep(0)} style={{ flex: 1, padding: '13px', borderRadius: 11, border: '1.5px solid #d4eadc', background: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: '#6a8070' }}>← 戻る</button>
+              <button onClick={() => setStep(0)} style={{ flex: 1, padding: '13px', borderRadius: 11, border: '1.5px solid #d4eadc', background: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: '#6a8070' }}>â æ»ã</button>
               <button onClick={handleNext} style={{ flex: 2, padding: '13px', borderRadius: 11, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 800, background: 'linear-gradient(135deg,#1a3a2a,#2d7a4a)', color: '#fff' }}>
-                確認画面へ（{totalApplying}名）→
+                ç¢ºèªç»é¢ã¸ï¼{totalApplying}åï¼â
               </button>
             </div>
           </div>
         )}
 
-        {/* STEP 2: 確認 */}
+        {/* STEP 2: ç¢ºèª */}
         {step === 2 && (
           <div style={{ background: '#fff', borderRadius: 14, padding: '24px', boxShadow: '0 2px 14px rgba(30,80,50,0.07)', border: '1px solid #d4eadc' }}>
-            <h2 style={{ fontSize: 15, fontWeight: 800, color: '#1a3a2a', marginBottom: 4 }}>申込内容の確認</h2>
-            <p style={{ fontSize: 12, color: '#6a8070', marginBottom: 16 }}>以下の内容でお申込みします。ご確認ください。</p>
+            <h2 style={{ fontSize: 15, fontWeight: 800, color: '#1a3a2a', marginBottom: 4 }}>ç³è¾¼åå®¹ã®ç¢ºèª</h2>
+            <p style={{ fontSize: 12, color: '#6a8070', marginBottom: 16 }}>ä»¥ä¸ã®åå®¹ã§ãç³è¾¼ã¿ãã¾ãããç¢ºèªãã ããã</p>
             {willWait && (
               <div style={{ background: '#fffbeb', border: '1.5px solid #fcd34d', borderRadius: 10, padding: '12px 16px', marginBottom: 14 }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: '#92400e', marginBottom: 3 }}>⏳ キャンセル待ちを含むお申込みです</div>
-                <div style={{ fontSize: 12, color: '#b45309' }}>確定：{confirmCount}名 ／ キャンセル待ち：{waitCount}名</div>
+                <div style={{ fontSize: 12, fontWeight: 800, color: '#92400e', marginBottom: 3 }}>â³ ã­ã£ã³ã»ã«å¾ã¡ãå«ããç³è¾¼ã¿ã§ã</div>
+                <div style={{ fontSize: 12, color: '#b45309' }}>ç¢ºå®ï¼{confirmCount}å ï¼ ã­ã£ã³ã»ã«å¾ã¡ï¼{waitCount}å</div>
               </div>
             )}
             <div style={{ background: '#f0fdf4', borderRadius: 10, padding: '14px 16px', marginBottom: 12 }}>
-              <div style={{ fontSize: 11, color: '#166534', fontWeight: 800, marginBottom: 10 }}>▶ 代表者</div>
+              <div style={{ fontSize: 11, color: '#166534', fontWeight: 800, marginBottom: 10 }}>â¶ ä»£è¡¨è</div>
               {[
-                ['お名前', `${form.lastName} ${form.firstName}（${form.lastNameKana} ${form.firstNameKana}）`],
-                ['メール', form.email],
-                ['電話', form.phone],
-                ['担当販売店', selectedShop?.name || ''],
-                ['参加区分', form.isFirst ? '🆕 初回参加' : '↩️ リピート参加'],
-                ['懇親会', form.party ? `🙋 参加（¥${EVENT.party.fee.toLocaleString()}）` : '🙅 不参加'],
+                ['ãåå', `${form.lastName} ${form.firstName}ï¼${form.lastNameKana} ${form.firstNameKana}ï¼`],
+                ['ã¡ã¼ã«', form.email],
+                ['é»è©±', form.phone],
+                ['æå½è²©å£²åº', selectedShop?.name || ''],
+                ['åå åºå', form.isFirst ? 'ð åååå ' : 'â©ï¸ ãªãã¼ãåå '],
+                ['æè¦ªä¼', form.party ? `ð åå ï¼Â¥${EVENT.party.fee.toLocaleString()}ï¼` : 'ð ä¸åå '],
               ].map(([l, v]) => (
                 <div key={l} style={{ display: 'flex', gap: 12, padding: '5px 0', borderBottom: '1px solid #d1fae5' }}>
                   <span style={{ fontSize: 11, color: '#4ade80', minWidth: 90, fontWeight: 600 }}>{l}</span>
@@ -493,11 +493,11 @@ function HomeContent() {
             </div>
             {companions.map((comp, i) => (
               <div key={i} style={{ background: '#f8fbff', borderRadius: 10, padding: '12px 16px', marginBottom: 10, border: '1px solid #dde8f5' }}>
-                <div style={{ fontSize: 11, fontWeight: 800, color: '#2d5a8a', marginBottom: 8 }}>▶ 同伴者 {i + 1}</div>
+                <div style={{ fontSize: 11, fontWeight: 800, color: '#2d5a8a', marginBottom: 8 }}>â¶ åä¼´è {i + 1}</div>
                 {[
-                  ['お名前', `${comp.lastName} ${comp.firstName}`],
-                  ['参加区分', comp.isFirst ? '🆕 初回参加' : '↩️ リピート参加'],
-                  ['懇親会', comp.party ? `🙋 参加（¥${EVENT.party.fee.toLocaleString()}）` : '🙅 不参加'],
+                  ['ãåå', `${comp.lastName} ${comp.firstName}`],
+                  ['åå åºå', comp.isFirst ? 'ð åååå ' : 'â©ï¸ ãªãã¼ãåå '],
+                  ['æè¦ªä¼', comp.party ? `ð åå ï¼Â¥${EVENT.party.fee.toLocaleString()}ï¼` : 'ð ä¸åå '],
                 ].map(([l, v]) => (
                   <div key={l} style={{ display: 'flex', gap: 12, padding: '4px 0', borderBottom: '1px solid #e8eef8' }}>
                     <span style={{ fontSize: 11, color: '#8899cc', minWidth: 90 }}>{l}</span>
@@ -509,13 +509,13 @@ function HomeContent() {
             <div style={{ background: 'linear-gradient(135deg,#f0fdf4,#fffbeb)', borderRadius: 10, border: '1px solid #a7f3d0', padding: '14px 18px', marginBottom: 16 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
                 <div style={{ display: 'flex', gap: 20 }}>
-                  <div style={{ textAlign: 'center' }}><div style={{ fontSize: 9, color: '#888' }}>申込合計</div><div style={{ fontSize: 24, fontWeight: 900, color: '#2d7a4a' }}>{totalApplying}<span style={{ fontSize: 11, color: '#aaa' }}>名</span></div></div>
-                  <div style={{ textAlign: 'center' }}><div style={{ fontSize: 9, color: '#888' }}>懇親会参加</div><div style={{ fontSize: 24, fontWeight: 900, color: '#1a7a4a' }}>{partyCount}<span style={{ fontSize: 11, color: '#aaa' }}>名</span></div></div>
+                  <div style={{ textAlign: 'center' }}><div style={{ fontSize: 9, color: '#888' }}>ç³è¾¼åè¨</div><div style={{ fontSize: 24, fontWeight: 900, color: '#2d7a4a' }}>{totalApplying}<span style={{ fontSize: 11, color: '#aaa' }}>å</span></div></div>
+                  <div style={{ textAlign: 'center' }}><div style={{ fontSize: 9, color: '#888' }}>æè¦ªä¼åå </div><div style={{ fontSize: 24, fontWeight: 900, color: '#1a7a4a' }}>{partyCount}<span style={{ fontSize: 11, color: '#aaa' }}>å</span></div></div>
                 </div>
                 {partyCount > 0 && (
                   <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: 10, color: '#888' }}>懇親会 当日払い合計</div>
-                    <div style={{ fontSize: 22, fontWeight: 900, color: '#2d7a4a' }}>¥{partyTotal.toLocaleString()}</div>
+                    <div style={{ fontSize: 10, color: '#888' }}>æè¦ªä¼ å½æ¥æãåè¨</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: '#2d7a4a' }}>Â¥{partyTotal.toLocaleString()}</div>
                   </div>
                 )}
               </div>
@@ -523,37 +523,37 @@ function HomeContent() {
             <div style={{ padding: '13px 15px', background: '#f8fbff', borderRadius: 10, border: '1px solid #dde8f5', marginBottom: 8 }}>
               <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
                 <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} style={{ marginTop: 2, accentColor: '#2d7a4a' }} />
-                <span style={{ fontSize: 12, color: '#4a6070', lineHeight: 1.7 }}>注意事項および個人情報の取り扱いに同意します。同伴者の情報についても代表者として同意・提供する権限があることを確認しました。</span>
+                <span style={{ fontSize: 12, color: '#4a6070', lineHeight: 1.7 }}>æ³¨æäºé ããã³åäººæå ±ã®åãæ±ãã«åæãã¾ããåä¼´èã®æå ±ã«ã¤ãã¦ãä»£è¡¨èã¨ãã¦åæã»æä¾ããæ¨©éããããã¨ãç¢ºèªãã¾ããã</span>
               </label>
             </div>
-            {!agreed && <div style={{ fontSize: 11, color: '#ef4444', marginBottom: 12 }}>同意が必要です</div>}
+            {!agreed && <div style={{ fontSize: 11, color: '#ef4444', marginBottom: 12 }}>åæãå¿è¦ã§ã</div>}
             <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
-              <button onClick={() => setStep(1)} style={{ flex: 1, padding: '13px', borderRadius: 11, border: '1.5px solid #d4eadc', background: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: '#6a8070' }}>← 修正する</button>
+              <button onClick={() => setStep(1)} style={{ flex: 1, padding: '13px', borderRadius: 11, border: '1.5px solid #d4eadc', background: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: '#6a8070' }}>â ä¿®æ­£ãã</button>
               <button onClick={handleNext} disabled={!agreed || submitting} style={{ flex: 2, padding: '13px', borderRadius: 11, border: 'none', cursor: agreed && !submitting ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 800, background: agreed && !submitting ? 'linear-gradient(135deg,#1a3a2a,#2d7a4a)' : '#e5e7eb', color: agreed && !submitting ? '#fff' : '#9ca3af' }}>
-                {submitting ? '送信中...' : '送信する ✓'}
+                {submitting ? 'éä¿¡ä¸­...' : 'éä¿¡ãã â'}
               </button>
             </div>
           </div>
         )}
 
-        {/* STEP 3: 完了 */}
+        {/* STEP 3: å®äº */}
         {step === 3 && (
           <div style={{ background: '#fff', borderRadius: 16, padding: '40px 24px', boxShadow: '0 2px 20px rgba(30,80,50,0.08)', border: `2px solid ${submitted === 'waiting' ? '#fcd34d' : '#a7f3d0'}`, textAlign: 'center' }}>
-            <div style={{ fontSize: 60, marginBottom: 14 }}>{submitted === 'waiting' ? '⏳' : '✅'}</div>
+            <div style={{ fontSize: 60, marginBottom: 14 }}>{submitted === 'waiting' ? 'â³' : 'â'}</div>
             <h2 style={{ fontSize: 20, fontWeight: 900, color: '#1a3a2a', marginBottom: 8 }}>
-              {submitted === 'waiting' ? 'キャンセル待ち受付完了' : 'お申込みが完了しました！'}
+              {submitted === 'waiting' ? 'ã­ã£ã³ã»ã«å¾ã¡åä»å®äº' : 'ãç³è¾¼ã¿ãå®äºãã¾ããï¼'}
             </h2>
             <p style={{ fontSize: 13, color: '#6a8070', lineHeight: 1.9, marginBottom: 22 }}>
               {submitted === 'waiting'
-                ? 'キャンセル待ちを受け付けました。空きが出た場合、申込順に参加確定のご連絡をいたします。'
-                : '確認メールをお送りしました。当日のご参加をお待ちしております！'}
+                ? 'ã­ã£ã³ã»ã«å¾ã¡ãåãä»ãã¾ãããç©ºããåºãå ´åãç³è¾¼é ã«åå ç¢ºå®ã®ãé£çµ¡ããããã¾ãã'
+                : 'ç¢ºèªã¡ã¼ã«ããéããã¾ãããå½æ¥ã®ãåå ããå¾ã¡ãã¦ããã¾ãï¼'}
             </p>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
               <button onClick={() => { setStep(0); setForm({ lastName: '', firstName: '', lastNameKana: '', firstNameKana: '', email: '', emailConfirm: '', phone: '', shopId: '', isFirst: null, party: null, prefecture: '', remarks: '' }); setCompanions([]); setAgreed(false); setSubmitted(null); }} style={{ padding: '10px 24px', borderRadius: 10, border: '1.5px solid #d4eadc', background: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', color: '#6a8070' }}>
-                別の方の申込みをする
+                å¥ã®æ¹ã®ç³è¾¼ã¿ããã
               </button>
               <button onClick={() => router.push('/events')} style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#1a3a2a,#2d7a4a)', fontSize: 12, fontWeight: 700, cursor: 'pointer', color: '#fff' }}>
-                イベント一覧へ
+                ã¤ãã³ãä¸è¦§ã¸
               </button>
             </div>
           </div>
@@ -565,7 +565,7 @@ function HomeContent() {
 
 export default function Home() {
   return (
-    <Suspense fallback={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', fontSize: 16, color: '#2d7a4a' }}>読み込み中...</div>}>
+    <Suspense fallback={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', fontSize: 16, color: '#2d7a4a' }}>èª­ã¿è¾¼ã¿ä¸­...</div>}>
       <HomeContent />
     </Suspense>
   )
