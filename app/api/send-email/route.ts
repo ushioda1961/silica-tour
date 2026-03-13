@@ -122,15 +122,46 @@ export async function POST(request: NextRequest) {
             ${isCancel ? '🚫 キャンセル' : isPromote ? '✅ 参加確定（昇格）' : isWaiting ? '⏳ キャンセル待ち申込' : '📝 新規申込み'}
           </h2>
         </div>
-        <div style="background:#fff;padding:24px;border:1px solid #ddd;border-top:none;border-radius:0 0 8px 8px;font-size:14px;line-height:2;">
-          <p style="margin:0 0 12px;"><strong>【新規申込者お名前】</strong><br>${participant.last_name} ${participant.first_name}（${participant.last_name_kana} ${participant.first_name_kana}）</p>
-          <p style="margin:0 0 12px;"><strong>【メールアドレス】</strong><br>${participant.email}</p>
-          <p style="margin:0 0 12px;"><strong>【電話】</strong><br>${participant.phone}</p>
-          <p style="margin:0 0 12px;"><strong>【ステータス】</strong><br>${isCancel ? 'キャンセル' : isPromote ? '確定（昇格）' : isWaiting ? `キャンセル待ち ${participant.wait_no}番` : '参加確定'}　申込人数${totalCount}名（代表者1名${companions.length > 0 ? ` + 同伴者${companions.length}名` : ''}）</p>
-          <p style="margin:0 0 12px;"><strong>【懇親会】</strong><br>${partyCount > 0 ? `参加 ${partyCount}名（¥${partyTotal.toLocaleString()}）` : '不参加'}</p>
-          ${participant.remarks ? `<p style="margin:0 0 12px;"><strong>【備考】</strong><br>${participant.remarks}</p>` : ''}
-          ${shopName ? `<p style="margin:0 0 12px;"><strong>【担当販売者】</strong><br>${shopName}</p>` : ''}
-          <div style="margin-top:20px;text-align:center;">
+        <div style="background:#fff;padding:24px;border:1px solid #ddd;border-top:none;border-radius:0 0 8px 8px;font-size:15px;line-height:1.6;">
+
+          <p style="margin:0 0 20px;">
+            <strong>【新規申込者お名前】</strong><br>
+            ${participant.last_name} ${participant.first_name}（${participant.last_name_kana} ${participant.first_name_kana}）
+          </p>
+
+          <p style="margin:0 0 20px;">
+            <strong>【担当販売者】</strong><br>
+            ${shopName ? shopName : '（なし・直接参加）'}
+          </p>
+
+          <p style="margin:0 0 20px;">
+            <strong>【メールアドレス】</strong><br>
+            ${participant.email}
+          </p>
+
+          <p style="margin:0 0 20px;">
+            <strong>【電話】</strong><br>
+            ${participant.phone}
+          </p>
+
+          <p style="margin:0 0 20px;">
+            <strong>【ステータス】</strong><br>
+            ${isCancel ? 'キャンセル' : isPromote ? '確定（昇格）' : isWaiting ? `キャンセル待ち ${participant.wait_no}番` : '参加確定'}　申込人数 ${totalCount}名（代表者1名${companions.length > 0 ? ` ＋ 同伴者${companions.length}名` : ''}）
+          </p>
+
+          <p style="margin:0 0 20px;">
+            <strong>【懇親会】</strong><br>
+            ${partyCount > 0 ? `参加 ${partyCount}名（¥${partyTotal.toLocaleString()}）` : '不参加'}
+          </p>
+
+          ${participant.remarks ? `
+          <p style="margin:0 0 20px;">
+            <strong>【備考】</strong><br>
+            ${participant.remarks}
+          </p>
+          ` : ''}
+
+          <div style="margin-top:24px;text-align:center;">
             <a href="https://silica-tour.vercel.app/staff" style="background:#1a3a2a;color:#fff;padding:10px 24px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:bold;">管理画面を開く</a>
           </div>
         </div>
@@ -145,14 +176,47 @@ export async function POST(request: NextRequest) {
             ${isCancel ? '🚫 キャンセル通知' : '📝 担当のお客様からの申込みです'}
           </h2>
         </div>
-        <div style="background:#fff;padding:24px;border:1px solid #ddd;border-top:none;border-radius:0 0 8px 8px;font-size:14px;line-height:2;">
-          <p style="margin:0 0 16px;color:#333;">${shopName} 様<br>担当のお客様から${isCancel ? 'キャンセルの連絡' : '見学会のお申込み'}がありました。</p>
-          <p style="margin:0 0 12px;"><strong>【お客様お名前】</strong><br>${participant.last_name} ${participant.first_name}（${participant.last_name_kana} ${participant.first_name_kana}）</p>
-          <p style="margin:0 0 12px;"><strong>【メールアドレス】</strong><br>${participant.email}</p>
-          <p style="margin:0 0 12px;"><strong>【電話】</strong><br>${participant.phone}</p>
-          <p style="margin:0 0 12px;"><strong>【ステータス】</strong><br>${isCancel ? 'キャンセル' : isWaiting ? `キャンセル待ち ${participant.wait_no}番` : '参加確定'}　申込人数${totalCount}名</p>
-          ${partyCount > 0 ? `<p style="margin:0 0 12px;"><strong>【懇親会】</strong><br>参加 ${partyCount}名（¥${partyTotal.toLocaleString()}）</p>` : ''}
-          ${participant.remarks ? `<p style="margin:0 0 12px;"><strong>【備考】</strong><br>${participant.remarks}</p>` : ''}
+        <div style="background:#fff;padding:24px;border:1px solid #ddd;border-top:none;border-radius:0 0 8px 8px;font-size:15px;line-height:1.6;">
+
+          <p style="margin:0 0 20px;color:#333;">
+            ${shopName} 様<br>
+            担当のお客様から${isCancel ? 'キャンセルの連絡' : '見学会のお申込み'}がありました。
+          </p>
+
+          <p style="margin:0 0 20px;">
+            <strong>【お客様お名前】</strong><br>
+            ${participant.last_name} ${participant.first_name}（${participant.last_name_kana} ${participant.first_name_kana}）
+          </p>
+
+          <p style="margin:0 0 20px;">
+            <strong>【メールアドレス】</strong><br>
+            ${participant.email}
+          </p>
+
+          <p style="margin:0 0 20px;">
+            <strong>【電話】</strong><br>
+            ${participant.phone}
+          </p>
+
+          <p style="margin:0 0 20px;">
+            <strong>【ステータス】</strong><br>
+            ${isCancel ? 'キャンセル' : isWaiting ? `キャンセル待ち ${participant.wait_no}番` : '参加確定'}　申込人数 ${totalCount}名
+          </p>
+
+          ${partyCount > 0 ? `
+          <p style="margin:0 0 20px;">
+            <strong>【懇親会】</strong><br>
+            参加 ${partyCount}名（¥${partyTotal.toLocaleString()}）
+          </p>
+          ` : ''}
+
+          ${participant.remarks ? `
+          <p style="margin:0 0 20px;">
+            <strong>【備考】</strong><br>
+            ${participant.remarks}
+          </p>
+          ` : ''}
+
         </div>
       </div>
     `
