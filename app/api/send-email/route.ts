@@ -16,6 +16,12 @@ const STAFF_EMAILS = [
   // 'staff3@example.com',  // 3人目のスタッフ
 ]
 
+// 代理店メールアドレス（agent_name → email）
+const AGENT_EMAILS: Record<string, string> = {
+  '川上利夫': 'fire.toshio@gmail.com',
+  '藤井佑昴': 'totototototoro84@gmail.com',
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -29,20 +35,25 @@ export async function POST(request: NextRequest) {
     const isCancel = type === 'cancel'
     const isPromote = type === 'promote'
 
-    // 担当販売者のメールアドレスをSupabaseから取得
+    // 担当販売者のメールアドレス・代理店名をSupabaseから取得
     let shopEmail: string | null = null
     let shopName: string | null = null
+    let agentName: string | null = null
     if (participant.shop_id) {
       const { data: shopData } = await supabase
         .from('shops')
-        .select('name, email')
+        .select('name, email, agent_name')
         .eq('id', participant.shop_id)
         .single()
-      if (shopData?.email) {
-        shopEmail = shopData.email
-        shopName = shopData.name
+      if (shopData) {
+        shopEmail = shopData.email || null
+        shopName = shopData.name || null
+        agentName = shopData.agent_name || null
       }
     }
+
+    // 代理店メールアドレスを取得
+    const agentEmail = agentName ? (AGENT_EMAILS[agentName] || null) : null
 
     // 件名
     const getSubject = () => {
@@ -221,6 +232,64 @@ export async function POST(request: NextRequest) {
       </div>
     `
 
+    // 代理店への通知メール本文
+    const getAgentHtml = () => `
+      <div style="font-family:'Hiragino Kaku Gothic ProN','Meiryo',sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+        <div style="background:${isCancel ? '#ef4444' : '#1a3a2a'};padding:16px 20px;border-radius:8px 8px 0 0;">
+          <h2 style="color:#fff;font-size:16px;margin:0;">
+            ${isCancel ? '🚫 キャンセル通知（代理店）' : '📝 担当エリアのお客様からの申込みです'}
+          </h2>
+        </div>
+        <div style="background:#fff;padding:24px;border:1px solid #ddd;border-top:none;border-radius:0 0 8px 8px;font-size:15px;line-height:1.6;">
+
+          <p style="margin:0 0 20px;color:#333;">
+            ${agentName} 様<br>
+            担当エリアの販売店（${shopName}）のお客様から${isCancel ? 'キャンセルの連絡' : '見学会のお申込み'}がありました。
+          </p>
+
+          <p style="margin:0 0 20px;">
+            <strong>【担当販売店】</strong><br>
+            ${shopName}
+          </p>
+
+          <p style="margin:0 0 20px;">
+            <strong>【お客様お名前】</strong><br>
+            ${participant.last_name} ${participant.first_name}（${participant.last_name_kana} ${participant.first_name_kana}）
+          </p>
+
+          <p style="margin:0 0 20px;">
+            <strong>【メールアドレス】</strong><br>
+            ${participant.email}
+          </p>
+
+          <p style="margin:0 0 20px;">
+            <strong>【電話】</strong><br>
+            ${participant.phone}
+          </p>
+
+          <p style="margin:0 0 20px;">
+            <strong>【ステータス】</strong><br>
+            ${isCancel ? 'キャンセル' : isWaiting ? `キャンセル待ち ${participant.wait_no}番` : '参加確定'}　申込人数 ${totalCount}名
+          </p>
+
+          ${partyCount > 0 ? `
+          <p style="margin:0 0 20px;">
+            <strong>【懇親会】</strong><br>
+            参加 ${partyCount}名（¥${partyTotal.toLocaleString()}）
+          </p>
+          ` : ''}
+
+          ${participant.remarks ? `
+          <p style="margin:0 0 20px;">
+            <strong>【備考】</strong><br>
+            ${participant.remarks}
+          </p>
+          ` : ''}
+
+        </div>
+      </div>
+    `
+
     // 申込者へメール送信
     if (!isCancel || isPromote) {
       await resend.emails.send({
@@ -258,6 +327,16 @@ export async function POST(request: NextRequest) {
         to: shopEmail,
         subject: getSubject(),
         html: getShopHtml(),
+      })
+    }
+
+    // 代理店に通知メール（販売店に代理店が紐づいている場合のみ）
+    if (agentEmail) {
+      await resend.emails.send({
+        from: 'シリカ工場見学会システム <noreply@you-planning.org>',
+        to: agentEmail,
+        subject: getSubject(),
+        html: getAgentHtml(),
       })
     }
 
