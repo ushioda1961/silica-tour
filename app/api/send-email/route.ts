@@ -8,6 +8,8 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
+// レート制限対策: 送信間隔を空ける
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 // スタッフ通知先メールアドレス（ここに追加してください）
 const STAFF_EMAILS = [
   'u-mail@ushioda-masaaki.com',
@@ -298,6 +300,7 @@ export async function POST(request: NextRequest) {
         subject: getSubject(),
         html: getUserHtml(),
       })
+    await sleep(600)      
     }
 
     // キャンセルの場合も申込者にメール
@@ -308,6 +311,7 @@ export async function POST(request: NextRequest) {
         subject: getSubject(),
         html: getUserHtml(),
       })
+          await sleep(600)
     }
 
     // スタッフ全員に通知メール
@@ -318,6 +322,7 @@ export async function POST(request: NextRequest) {
         subject: getSubject(),
         html: getStaffHtml(),
       })
+          await sleep(600)
     }
 
     // 担当販売者に通知メール（メールアドレスがある場合のみ）
@@ -328,6 +333,7 @@ export async function POST(request: NextRequest) {
         subject: getSubject(),
         html: getShopHtml(),
       })
+          await sleep(600)
     }
 
     // 代理店に通知メール（販売店に代理店が紐づいている場合のみ）
