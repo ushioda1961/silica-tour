@@ -57,6 +57,7 @@ const shops = [
   { id: "S24", name: "ペロネ郁子" },
   { id: "S25", name: "元吉望" },
   { id: "S26", name: "前田有希子" },
+  { id: "S70", name: "安田泰平" },
   { id: "S28", name: "林初子" },
 ]
 
