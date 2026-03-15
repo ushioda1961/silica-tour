@@ -39,10 +39,10 @@ export default function StaffPage() {
     setLoggedIn(true)
   }
 
-  const fetchData = async (user: UserInfo) => {
+  const fetchData = async (user: UserInfo, eventId?: string) => {
     setLoading(true)
     const { data: evtData } = await supabase.from('events').select('*').eq('status','open').order('date',{ascending:true})
-    if (evtData) { setEvents(evtData); if (!selectedEventId) setSelectedEventId(evtData[0]?.id || '') }
+    if (evtData) { setEvents(evtData); if (!selectedEventId && !eventId) setSelectedEventId(evtData[0]?.id || '') }
 
     const { data: shopData } = await supabase.from('shops').select('*')
     if (shopData) setShops(shopData)
@@ -54,7 +54,7 @@ export default function StaffPage() {
       const shopIds = agentShops.map(s => s.id)
       if (shopIds.length > 0) query = query.in('shop_id', shopIds)
     }
-    if (selectedEventId) query = query.eq('event_id', selectedEventId)
+    const effectiveEventId = eventId || selectedEventId
     const { data } = await query
     if (data) setParticipants(data)
     setLoading(false)
@@ -455,7 +455,7 @@ export default function StaffPage() {
               return (
                 <button
                   key={evt.id}
-                  onClick={() => { setSelectedEventId(evt.id); fetchData(userInfo!) }}
+                  onClick={() => { setSelectedEventId(evt.id); fetchData(userInfo!, evt.id) }}
                   style={{ flexShrink: 0, padding: '10px 16px', border: 'none', borderBottom: isActive ? `3px solid ${C}` : '3px solid transparent', background: 'transparent', color: isActive ? C : '#64748b', fontWeight: isActive ? 900 : 400, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' as const, transition: 'all 0.15s' }}
                 >
                   第{i+1}回 {label}
