@@ -54,7 +54,7 @@ export default function StaffPage() {
       const shopIds = agentShops.map(s => s.id)
       if (shopIds.length > 0) query = query.in('shop_id', shopIds)
     }
-        const effectiveEventId = eventId || selectedEventId
+            const effectiveEventId = eventId || selectedEventId || evtData?.[0]?.id || ''
             if (effectiveEventId) query = query.eq('event_id', effectiveEventId)
     const { data } = await query
     if (data) setParticipants(data)
