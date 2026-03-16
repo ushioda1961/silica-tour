@@ -26,6 +26,7 @@ export async function POST(req: NextRequest) {
 工場見学はオープニングの演奏からはじまり、工場内の各セクションの見学、メーカーのスタッフ、社長からのミニセミナー、プレゼント企画など、楽しい内容がたくさんありアッというまの3時間になると思います。
 
 また何かの場合のキャンセルは、担当販売者にお申し頂ければ受付致します。
+
 このイベントは大変人気のイベントの為、出来るだけ直近のキャンセルはお控え下さい。
 
 なお、何かご質問がある場合は私に直接ご連絡下さい。
@@ -35,9 +36,6 @@ export async function POST(req: NextRequest) {
 では、よろしくお願いします。
 
 シリカの工場でお会いしましょう！
-
-▼牛連絡先・情報一覧▼
-https://share-me.design/ushiodamasaaki
 `
 
     const res = await fetch('https://api.resend.com/emails', {
