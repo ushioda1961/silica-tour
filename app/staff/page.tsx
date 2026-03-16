@@ -79,12 +79,69 @@ export default function StaffPage() {
   }
 
   const handleDelete = async (p: Participant) => {
+    // 削除対象の event_id を取得
+    const { data: pData } = await supabase
+      .from('participants')
+      .select('event_id')
+      .eq('id', p.id)
+      .single()
+    const eventId = pData?.event_id
+
+    // 同伴者・参加者を削除
     await supabase.from('companions').delete().eq('participant_id', p.id)
     await supabase.from('participants').delete().eq('id', p.id)
     setParticipants(prev => prev.filter(x => x.id !== p.id))
     setConfirmDialog(null)
-    setActionMsg(p.last_name + p.first_name + ' さんのデータを削除しました')
-    setTimeout(() => setActionMsg(''), 3000)
+
+    // キャンセル待ち最上位の人を昇格
+    if (eventId) {
+      const { data: waiting } = await supabase
+        .from('participants')
+        .select('*')
+        .eq('event_id', eventId)
+        .eq('status', 'waiting')
+        .order('wait_no', { ascending: true })
+        .limit(1)
+
+      if (waiting && waiting.length > 0) {
+        const next = waiting[0]
+        await supabase
+          .from('participants')
+          .update({ status: 'confirmed', wait_no: null })
+          .eq('id', next.id)
+
+        const { data: evtData } = await supabase
+          .from('events')
+          .select('*')
+          .eq('id', eventId)
+          .single()
+
+        if (evtData) {
+          await fetch('/api/send-confirmation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: next.email,
+              lastName: next.last_name,
+              firstName: next.first_name,
+              eventTitle: evtData.title,
+              eventDate: evtData.date,
+              eventTime: evtData.time_start + ' ～ ' + evtData.time_end,
+              shopName: next.shop_id || '',
+              party: next.party,
+            }),
+          })
+        }
+        setActionMsg(`🗑️ ${p.last_name}${p.first_name}さんを削除しました。キャンセル待ち ${next.last_name}${next.first_name}さんを参加確定に昇格しました！`)
+      } else {
+        setActionMsg(`🗑️ ${p.last_name}${p.first_name}さんを削除しました（キャンセル待ちなし）`)
+      }
+    } else {
+      setActionMsg(`🗑️ ${p.last_name}${p.first_name}さんのデータを削除しました`)
+    }
+    setTimeout(() => setActionMsg(''), 5000)
+    fetchData(userInfo!)
+  }
   }
 
   const handleCancel = async (p: Participant) => {
