@@ -142,7 +142,7 @@ export default function StaffPage() {
     setTimeout(() => setActionMsg(''), 5000)
     fetchData(userInfo!)
   }
-  }
+  
 
   const handleCancel = async (p: Participant) => {
     const { error } = await supabase.from('participants').update({ status: 'cancelled' }).eq('id', p.id)
