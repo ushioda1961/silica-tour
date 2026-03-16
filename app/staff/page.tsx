@@ -141,7 +141,7 @@ export default function StaffPage() {
             }),
           })
         }
-        }
+        
         setActionMsg(`🗑️ ${p.last_name}${p.first_name}さんを削除しました。キャンセル待ち ${next.last_name}${next.first_name}さんを参加確定に昇格しました！`)
       } else {
         setActionMsg(`🗑️ ${p.last_name}${p.first_name}さんを削除しました（キャンセル待ちなし）`)
