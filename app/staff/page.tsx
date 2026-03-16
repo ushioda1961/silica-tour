@@ -116,7 +116,14 @@ export default function StaffPage() {
           .eq('id', eventId)
           .single()
 
-        if (evtData) {
+                if (evtData) {
+          const { data: shopData } = await supabase
+            .from('shops')
+            .select('*')
+            .eq('id', next.shop_id)
+            .single()
+          const shopEmail = shopData?.email || null
+
           await fetch('/api/send-confirmation', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -126,11 +133,14 @@ export default function StaffPage() {
               firstName: next.first_name,
               eventTitle: evtData.title,
               eventDate: evtData.date,
-              eventTime: evtData.time_start + ' ～ ' + evtData.time_end,
-              shopName: next.shop_id || '',
+              eventTime: evtData.time_start + ' ~ ' + evtData.time_end,
+              shopName: shopData?.name || next.shop_id || '',
               party: next.party,
+              isPromotion: true,
+              shopEmail: shopEmail,
             }),
           })
+        }
         }
         setActionMsg(`🗑️ ${p.last_name}${p.first_name}さんを削除しました。キャンセル待ち ${next.last_name}${next.first_name}さんを参加確定に昇格しました！`)
       } else {
