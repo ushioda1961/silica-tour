@@ -7,7 +7,7 @@ const EVENT_STATIC = {
   title: "シリカ製造工場 無料見学会",
   fee: "無料",
   type: "現地集合・現地解散",
-  parking: "駐車場はあります",
+  parking: "駐車場はありません",
   deadline: "定員となり次第締め切ります",
   capacity: 50,
   party: {
