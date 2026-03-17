@@ -88,7 +88,6 @@ function HomeContent() {
     party: null as boolean | null,
     remarks: '',
   })
-  const [companions, setCompanions] = useState<any[]>([])
 
   useEffect(() => { fetchEvent() }, [eventIdParam])
 
@@ -104,21 +103,20 @@ function HomeContent() {
     if (!error && data) {
       setEventId(data.id)
       setEventInfo({ date: data.date, time_start: data.time_start, time_end: data.time_end })
-      fetchCount(data.id, data.capacity)
+      fetchCount(data.id)
     } else {
       setLoading(false)
     }
   }
 
-  const fetchCount = async (eid: string, cap?: number) => {
+  const fetchCount = async (eid: string) => {
     const { data, error } = await supabase
       .from('participants')
-      .select('id, companions(id)')
+      .select('id')
       .eq('event_id', eid)
       .eq('status', 'confirmed')
     if (!error && data) {
-      const total = data.reduce((sum: number, p: any) => sum + 1 + (p.companions?.length || 0), 0)
-      setCurrentCount(total)
+      setCurrentCount(data.length)
     }
     setLoading(false)
   }
@@ -131,12 +129,7 @@ function HomeContent() {
 
   const remaining = EVENT.capacity - currentCount
   const isFull = remaining <= 0
-  const totalApplying = 1 + companions.length
-  const willWait = totalApplying > remaining
-  const confirmCount = Math.min(totalApplying, remaining)
-  const waitCount = totalApplying - confirmCount
-  const partyCount = (form.party === true ? 1 : 0) + companions.filter(c => c.party === true).length
-  const partyTotal = partyCount * EVENT.party.fee
+  const partyFee = form.party === true ? EVENT.party.fee : 0
   const selectedShop = shops.find(s => s.id === form.shopId)
   const fillPct = Math.round((currentCount / EVENT.capacity) * 100)
 
@@ -153,11 +146,6 @@ function HomeContent() {
     if (!form.shopId) e.shopId = '販売店を選択してください'
     if (form.isFirst === null) e.isFirst = '参加区分を選択してください'
     if (form.party === null) e.party = '懇親会の参加有無を選択してください'
-    companions.forEach((c, i) => {
-      if (!c.lastName?.trim()) e[`c_${i}_name`] = '名前を入力してください'
-      if (c.isFirst === null || c.isFirst === undefined) e[`c_${i}_isFirst`] = '参加区分を選択してください'
-      if (c.party === null || c.party === undefined) e[`c_${i}_party`] = '懇親会の参加有無を選択してください'
-    })
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -166,12 +154,13 @@ function HomeContent() {
     setSubmitting(true)
     try {
       let waitNo = null
-      if (isFull || willWait) {
+      if (isFull) {
         const { data: waitData } = await supabase
           .from('participants').select('wait_no').eq('status', 'waiting')
           .order('wait_no', { ascending: false }).limit(1)
         waitNo = waitData && waitData.length > 0 ? (waitData[0].wait_no || 0) + 1 : 1
       }
+
       const { data: participant, error } = await supabase
         .from('participants')
         .insert({
@@ -185,30 +174,21 @@ function HomeContent() {
           shop_id: form.shopId,
           is_first: form.isFirst,
           party: form.party,
-          status: (isFull || willWait) ? 'waiting' : 'confirmed',
+          status: isFull ? 'waiting' : 'confirmed',
           wait_no: waitNo,
           prefecture: form.prefecture,
           remarks: form.remarks,
         })
         .select().single()
+
       if (error) throw error
-      if (companions.length > 0) {
-        const companionData = companions.map(c => ({
-          participant_id: participant.id,
-          last_name: c.lastName,
-          first_name: c.firstName || '',
-          relation: c.relation || '',
-          is_first: c.isFirst,
-          party: c.party,
-        }))
-        await supabase.from('companions').insert(companionData)
-      }
-      const finalStatus = (isFull || willWait) ? 'waiting' : 'confirmed'
+
+      const finalStatus = isFull ? 'waiting' : 'confirmed'
       setSubmitted(finalStatus)
       fetch('/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'new', participant: { ...participant, status: finalStatus }, companions }),
+        body: JSON.stringify({ type: 'new', participant: { ...participant, status: finalStatus }, companions: [] }),
       }).catch(() => {})
       setStep(3)
       if (eventId) fetchCount(eventId)
@@ -228,15 +208,10 @@ function HomeContent() {
   const Err = ({ f }: { f: string }) => errors[f] ? <div style={{ fontSize: 11, color: '#ef4444', marginTop: 3 }}>{errors[f]}</div> : null
   const Lbl = ({ children }: { children: React.ReactNode }) => <div style={{ fontSize: 12, fontWeight: 700, color: '#4a6080', marginBottom: 6 }}>{children}</div>
   const inpStyle = (field: string) => ({
-    width: '100%',
-    padding: '11px 13px',
-    borderRadius: 9,
-    fontSize: 13,
+    width: '100%', padding: '11px 13px', borderRadius: 9, fontSize: 13,
     background: errors[field] ? '#fff5f5' : '#f8fbff',
     border: `1.5px solid ${errors[field] ? '#fca5a5' : '#dde8f5'}`,
-    color: '#1a2a3a',
-    outline: 'none',
-    boxSizing: 'border-box' as const,
+    color: '#1a2a3a', outline: 'none', boxSizing: 'border-box' as const,
     fontFamily: "'Hiragino Kaku Gothic ProN','Meiryo',sans-serif",
   })
 
@@ -388,8 +363,8 @@ function HomeContent() {
           <div>
             <div style={{ background: '#fff', borderRadius: 14, padding: '22px', marginBottom: 14, boxShadow: '0 2px 10px rgba(30,80,50,0.06)', border: '1px solid #d4eadc' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
-                <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg,#1a3a2a,#2d7a4a)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: '#fff', fontWeight: 800 }}>代</div>
-                <h3 style={{ fontSize: 14, fontWeight: 800, color: '#1a3a2a' }}>お申込者情報（グループの方は代表者）</h3>
+                <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg,#1a3a2a,#2d7a4a)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: '#fff', fontWeight: 800 }}>申</div>
+                <h3 style={{ fontSize: 14, fontWeight: 800, color: '#1a3a2a' }}>お申込者情報</h3>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
                 <div><Lbl>姓<Req /></Lbl><input value={form.lastName} onChange={e => setForm({ ...form, lastName: e.target.value })} placeholder="山田" style={inpStyle('lastName')} /><Err f="lastName" /></div>
@@ -424,44 +399,15 @@ function HomeContent() {
               <PartySelect value={form.party} onChange={v => setForm({ ...form, party: v })} errKey="party" />
             </div>
 
-            {companions.map((comp, i) => (
-              <div key={i} style={{ background: '#fff', borderRadius: 13, padding: '20px 22px', marginBottom: 12, border: '2px solid #d4f0dc' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: '#2a4a2a' }}>同行者 {i + 1}</span>
-                  <button onClick={() => setCompanions(c => c.filter((_, idx) => idx !== i))} style={{ fontSize: 11, color: '#ef4444', background: '#fff5f5', border: '1px solid #fca5a5', borderRadius: 6, padding: '3px 10px', cursor: 'pointer' }}>削除</button>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
-                  <div><Lbl>姓<Req /></Lbl>
-                    <input value={comp.lastName || ''} onChange={e => setCompanions(c => c.map((x, idx) => idx === i ? { ...x, lastName: e.target.value } : x))} placeholder="山田" style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1.5px solid ${errors[`c_${i}_name`] ? '#fca5a5' : '#dde8f5'}`, fontSize: 13, background: '#f8fbff', color: '#1a2a3a', boxSizing: 'border-box' as const }} />
-                    <Err f={`c_${i}_name`} /></div>
-                  <div><Lbl>名</Lbl>
-                    <input value={comp.firstName || ''} onChange={e => setCompanions(c => c.map((x, idx) => idx === i ? { ...x, firstName: e.target.value } : x))} placeholder="太郎" style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1.5px solid #dde8f5', fontSize: 13, background: '#f8fbff', color: '#1a2a3a', boxSizing: 'border-box' as const }} /></div>
-                </div>
-                <div style={{ marginBottom: 12 }}>
-                  <Lbl>参加区分<Req /></Lbl>
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    {[{ v: true, label: '🌟 初回' }, { v: false, label: '↩️ リピート' }].map(opt => (
-                      <div key={String(opt.v)} onClick={() => setCompanions(c => c.map((x, idx) => idx === i ? { ...x, isFirst: opt.v } : x))} style={{ flex: 1, padding: '8px 4px', borderRadius: 7, border: `2px solid ${comp.isFirst === opt.v ? '#2d7a4a' : '#dde8f5'}`, cursor: 'pointer', textAlign: 'center', fontSize: 11, fontWeight: 700, background: comp.isFirst === opt.v ? '#f0fdf4' : '#f8fbff', color: comp.isFirst === opt.v ? '#1a3a2a' : '#9aaa9a' }}>{opt.label}</div>
-                    ))}
-                  </div><Err f={`c_${i}_isFirst`} />
-                </div>
-                <PartySelect value={comp.party} onChange={v => setCompanions(c => c.map((x, idx) => idx === i ? { ...x, party: v } : x))} errKey={`c_${i}_party`} />
-              </div>
-            ))}
-
-            <button onClick={() => setCompanions(c => [...c, { lastName: '', firstName: '', isFirst: null, relation: '', party: null }])} style={{ width: '100%', padding: '13px', borderRadius: 11, border: '2px dashed #a3d9b0', background: 'transparent', color: '#2d7a4a', fontSize: 13, fontWeight: 700, cursor: 'pointer', marginBottom: 18 }}>
-              ＋ 同行者を追加する
-            </button>
-
-            {partyCount > 0 && (
+            {form.party === true && (
               <div style={{ background: 'linear-gradient(135deg,#f0fdf4,#fffbeb)', border: '1.5px solid #a7f3d0', borderRadius: 12, padding: '14px 18px', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
-                  <div style={{ fontSize: 11, color: '#166534', fontWeight: 700 }}>🍻 懇親会参加者</div>
-                  <div style={{ fontSize: 13, color: '#1a3a2a', marginTop: 2 }}>{partyCount}名 × ¥{EVENT.party.fee.toLocaleString()}</div>
+                  <div style={{ fontSize: 11, color: '#166534', fontWeight: 700 }}>🍻 懇親会参加</div>
+                  <div style={{ fontSize: 13, color: '#1a3a2a', marginTop: 2 }}>1名 × ¥{EVENT.party.fee.toLocaleString()}</div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: 11, color: '#888' }}>当日お支払い合計</div>
-                  <div style={{ fontSize: 24, fontWeight: 900, color: '#2d7a4a' }}>¥{partyTotal.toLocaleString()}</div>
+                  <div style={{ fontSize: 11, color: '#888' }}>当日お支払い</div>
+                  <div style={{ fontSize: 24, fontWeight: 900, color: '#2d7a4a' }}>¥{partyFee.toLocaleString()}</div>
                 </div>
               </div>
             )}
@@ -482,7 +428,7 @@ function HomeContent() {
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => setStep(0)} style={{ flex: 1, padding: '13px', borderRadius: 11, border: '1.5px solid #d4eadc', background: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: '#6a8070' }}>← 戻る</button>
               <button onClick={handleNext} style={{ flex: 2, padding: '13px', borderRadius: 11, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 800, background: 'linear-gradient(135deg,#1a3a2a,#2d7a4a)', color: '#fff' }}>
-                確認画面へ（{totalApplying}名）→
+                確認画面へ →
               </button>
             </div>
           </div>
@@ -492,14 +438,13 @@ function HomeContent() {
           <div style={{ background: '#fff', borderRadius: 14, padding: '24px', boxShadow: '0 2px 14px rgba(30,80,50,0.07)', border: '1px solid #d4eadc' }}>
             <h2 style={{ fontSize: 15, fontWeight: 800, color: '#1a3a2a', marginBottom: 4 }}>申込内容の確認</h2>
             <p style={{ fontSize: 12, color: '#6a8070', marginBottom: 16 }}>以下の内容でお申込みします。確認ください。</p>
-            {willWait && (
+            {isFull && (
               <div style={{ background: '#fffbeb', border: '1.5px solid #fcd34d', borderRadius: 10, padding: '12px 16px', marginBottom: 14 }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: '#92400e', marginBottom: 3 }}>⏳ キャンセル待ちを含むお申込みです</div>
-                <div style={{ fontSize: 12, color: '#b45309' }}>確定：{confirmCount}名 ／ キャンセル待ち：{waitCount}名</div>
+                <div style={{ fontSize: 12, fontWeight: 800, color: '#92400e', marginBottom: 3 }}>⏳ キャンセル待ちでのお申込みです</div>
+                <div style={{ fontSize: 12, color: '#b45309' }}>空きが出た場合、申込順にご連絡します。</div>
               </div>
             )}
             <div style={{ background: '#f0fdf4', borderRadius: 10, padding: '14px 16px', marginBottom: 12 }}>
-              <div style={{ fontSize: 11, color: '#166534', fontWeight: 800, marginBottom: 10 }}>▶ 代表者</div>
               {[
                 ['お名前', `${form.lastName} ${form.firstName}（${form.lastNameKana} ${form.firstNameKana}）`],
                 ['メール', form.email],
@@ -514,39 +459,16 @@ function HomeContent() {
                 </div>
               ))}
             </div>
-            {companions.map((comp, i) => (
-              <div key={i} style={{ background: '#f8fbff', borderRadius: 10, padding: '12px 16px', marginBottom: 10, border: '1px solid #dde8f5' }}>
-                <div style={{ fontSize: 11, fontWeight: 800, color: '#2d5a8a', marginBottom: 8 }}>▶ 同行者 {i + 1}</div>
-                {[
-                  ['お名前', `${comp.lastName} ${comp.firstName}`],
-                  ['参加区分', comp.isFirst ? '🌟 初回参加' : '↩️ リピート参加'],
-                  ['懇親会', comp.party ? `🎉 参加（¥${EVENT.party.fee.toLocaleString()}）` : '🙏 不参加'],
-                ].map(([l, v]) => (
-                  <div key={l} style={{ display: 'flex', gap: 12, padding: '4px 0', borderBottom: '1px solid #e8eef8' }}>
-                    <span style={{ fontSize: 11, color: '#8899cc', minWidth: 90 }}>{l}</span>
-                    <span style={{ fontSize: 12, color: '#1a2a3a', fontWeight: 600 }}>{v}</span>
-                  </div>
-                ))}
+            {form.party === true && (
+              <div style={{ background: 'linear-gradient(135deg,#f0fdf4,#fffbeb)', borderRadius: 10, border: '1px solid #a7f3d0', padding: '14px 18px', marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ fontSize: 13, color: '#1a3a2a' }}>🍻 懇親会 当日お支払い</div>
+                <div style={{ fontSize: 22, fontWeight: 900, color: '#2d7a4a' }}>¥{partyFee.toLocaleString()}</div>
               </div>
-            ))}
-            <div style={{ background: 'linear-gradient(135deg,#f0fdf4,#fffbeb)', borderRadius: 10, border: '1px solid #a7f3d0', padding: '14px 18px', marginBottom: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-                <div style={{ display: 'flex', gap: 20 }}>
-                  <div style={{ textAlign: 'center' }}><div style={{ fontSize: 9, color: '#888' }}>申込合計</div><div style={{ fontSize: 24, fontWeight: 900, color: '#2d7a4a' }}>{totalApplying}<span style={{ fontSize: 11, color: '#aaa' }}>名</span></div></div>
-                  <div style={{ textAlign: 'center' }}><div style={{ fontSize: 9, color: '#888' }}>懇親会参加</div><div style={{ fontSize: 24, fontWeight: 900, color: '#1a7a4a' }}>{partyCount}<span style={{ fontSize: 11, color: '#aaa' }}>名</span></div></div>
-                </div>
-                {partyCount > 0 && (
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: 10, color: '#888' }}>懇親会 当日お支払い合計</div>
-                    <div style={{ fontSize: 22, fontWeight: 900, color: '#2d7a4a' }}>¥{partyTotal.toLocaleString()}</div>
-                  </div>
-                )}
-              </div>
-            </div>
+            )}
             <div style={{ padding: '13px 15px', background: '#f8fbff', borderRadius: 10, border: '1px solid #dde8f5', marginBottom: 8 }}>
               <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
                 <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} style={{ marginTop: 2, accentColor: '#2d7a4a' }} />
-                <span style={{ fontSize: 12, color: '#4a6070', lineHeight: 1.7 }}>注意事項および個人情報の取り扱いに同意します。同行者の情報についても代表者として同意・提供する権限があることを確認します。</span>
+                <span style={{ fontSize: 12, color: '#4a6070', lineHeight: 1.7 }}>注意事項および個人情報の取り扱いに同意します。</span>
               </label>
             </div>
             {!agreed && <div style={{ fontSize: 11, color: '#ef4444', marginBottom: 12 }}>同意が必要です</div>}
@@ -566,12 +488,10 @@ function HomeContent() {
               {submitted === 'waiting' ? 'キャンセル待ち受付完了' : 'お申込みが完了しました！'}
             </h2>
             <p style={{ fontSize: 13, color: '#6a8070', lineHeight: 1.9, marginBottom: 22 }}>
-              {submitted === 'waiting'
-                ? 'キャンセル待ちをお受けしました。空きが出た場合、申込順にご参加確定のご連絡をします。'
-                : '確認メールをお送りしました。当日のご参加をお待ちしております！'}
+              {submitted === 'waiting' ? 'キャンセル待ちをお受けしました。空きが出た場合、申込順にご参加確定のご連絡をします。' : '確認メールをお送りしました。当日のご参加をお待ちしております！'}
             </p>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button onClick={() => { setStep(0); setForm({ lastName: '', firstName: '', lastNameKana: '', firstNameKana: '', email: '', emailConfirm: '', phone: '', shopId: '', isFirst: null, party: null, prefecture: '', remarks: '' }); setCompanions([]); setAgreed(false); setSubmitted(null); }} style={{ padding: '10px 24px', borderRadius: 10, border: '1.5px solid #d4eadc', background: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', color: '#6a8070' }}>
+              <button onClick={() => { setStep(0); setForm({ lastName: '', firstName: '', lastNameKana: '', firstNameKana: '', email: '', emailConfirm: '', phone: '', shopId: '', isFirst: null, party: null, prefecture: '', remarks: '' }); setAgreed(false); setSubmitted(null); }} style={{ padding: '10px 24px', borderRadius: 10, border: '1.5px solid #d4eadc', background: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', color: '#6a8070' }}>
                 別の方の申込みをする
               </button>
               <button onClick={() => router.push('/events')} style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#1a3a2a,#2d7a4a)', fontSize: 12, fontWeight: 700, cursor: 'pointer', color: '#fff' }}>
