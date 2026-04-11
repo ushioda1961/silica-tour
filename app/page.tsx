@@ -59,6 +59,10 @@ const shops = [
   { id: "S26", name: "前田有希子" },
   { id: "S70", name: "安田泰平" },
   { id: "S28", name: "林初子" },
+    { id: "A01", name: "[代理店] 牛王田雅章" },
+    { id: "A02", name: "[代理店] 川上利夫" },
+    { id: "A03", name: "[代理店] 藤井佑昂" },
+    { id: "A04", name: "[代理店] 池尾里絵" },
 ]
 
 function HomeContent() {
