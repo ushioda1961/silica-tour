@@ -358,6 +358,31 @@ export default function StaffPage() {
           </div>
         </div>
 
+        {/* ── イベント選択タブ ── */}
+        {events.length > 0 && (
+          <div style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.07)', padding: '0 20px' }}>
+            <div style={{ maxWidth: 680, margin: '0 auto', display: 'flex', gap: 4, overflowX: 'auto' as const }}>
+              {events.map((evt, i) => {
+                const d = new Date(evt.date)
+                const days = ['日','月','火','水','木','金','土']
+                const label = `${d.getMonth()+1}/${d.getDate()}（${days[d.getDay()]}）`
+                const isActive = selectedEventId === evt.id
+                const colors = ['#3b82f6','#10b981','#f59e0b','#8b5cf6']
+                const C = colors[i] || '#3b82f6'
+                return (
+                  <button
+                    key={evt.id}
+                    onClick={() => { setSelectedEventId(evt.id); fetchData(userInfo!, evt.id) }}
+                    style={{ flexShrink: 0, padding: '12px 16px', border: 'none', borderBottom: isActive ? `3px solid ${C}` : '3px solid transparent', background: 'transparent', color: isActive ? C : '#64748b', fontWeight: isActive ? 900 : 600, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' as const, transition: 'all 0.15s' }}
+                  >
+                    第{i+1}回 {label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
         <div style={{ maxWidth: 680, margin: '0 auto', padding: '20px 16px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 20 }}>
             {[
