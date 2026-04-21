@@ -18,16 +18,16 @@ const STAFF_EMAILS = [
 const AGENT_EMAILS: Record<string, string> = {
   '川上利夫': 'fire.toshio@gmail.com',
   '藤井佑昂': 'totototototoro84@gmail.com',
-    '牛王田雅章': 'u-mail@ushioda-masaaki.com',
-    '池尾里絵': 'lotuseveil@gmail.com',
+  '牛王田雅章': 'u-mail@ushioda-masaaki.com',
+  '池尾里絵': 'lotuseveil@gmail.com',
+}
 
-  // 代理店ID→名前・メールのマップ
+// 代理店ID→名前・メールのマップ
 const AGENT_BY_ID: Record<string, { name: string; email: string }> = {
   'A01': { name: '牛王田雅章', email: 'u-mail@ushioda-masaaki.com' },
   'A02': { name: '川上利夫', email: 'fire.toshio@gmail.com' },
   'A03': { name: '藤井佑昂', email: 'totototototoro84@gmail.com' },
   'A04': { name: '池尾里絵', email: 'lotuseveil@gmail.com' },
-}
 }
 
 const formatDate = (dateStr: string) => {
