@@ -583,8 +583,8 @@ export default function StaffPage() {
           {[
             { label: '参加確定', count: confirmedCount, icon: '✅', color: '#2d7a4a', bg: '#f0fdf4', border: '#86efac' },
             { label: 'キャンセル待ち', count: waitingCount, icon: '⏳', color: '#d97706', bg: '#fffbeb', border: '#fcd34d' },
-            { label: 'キャンセル', count: cancelledCount, icon: '🚫', color: '#ef4444', bg: '#fef2f2', border: '#fca5a5' },,
-          { label: '懇親会参加', count: partyCount, icon: '🍻', color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe' }
+            { label: 'キャンセル', count: cancelledCount, icon: '🚫', color: '#ef4444', bg: '#fef2f2', border: '#fca5a5' },
+            { label: '懇親会参加', count: partyCount, icon: '🍻', color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe' },
           ].map(s => (
             <div key={s.label} style={{ background: s.bg, border: `1.5px solid ${s.border}`, borderRadius: 12, padding: '14px 16px', textAlign: 'center' }}>
               <div style={{ fontSize: 22 }}>{s.icon}</div>
