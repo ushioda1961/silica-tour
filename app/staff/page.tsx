@@ -160,6 +160,24 @@ export default function StaffPage() {
     setConfirmDialog(null); setTimeout(() => setActionMsg(''), 3000)
   }
 
+  const handlePartyToggle = async (p: Participant) => {
+    const newParty = !p.party
+    const { error } = await supabase
+      .from('participants')
+      .update({ party: newParty })
+      .eq('id', p.id)
+    if (error) { setActionMsg('⚠️ 更新に失敗しました'); return }
+    setParticipants(prev => prev.map(x => x.id === p.id ? { ...x, party: newParty } : x))
+    const msg = (newParty ? '🍻' : '❌') + ' ' + p.last_name + p.first_name + 'さんの懇親会を' + (newParty ? '参加' : '不参加') + 'に変更しました'
+    setActionMsg(msg)
+    setTimeout(() => setActionMsg(''), 4000)
+    fetch('/api/toggle-party', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ participantId: p.id, newParty, changedBy: userInfo?.login_id })
+    }).catch(e => console.error('toggle-party notify error:', e))
+  }
+
   const getShopName = (shopId: string) => shops.find(s => s.id === shopId)?.name || shopId
   const filtered = participants.filter(p => filter === 'all' || p.status === filter)
   const confirmedCount = participants.filter(p => p.status === 'confirmed').reduce((s, p) => s + 1 + (p.companions?.length || 0), 0)
@@ -561,11 +579,12 @@ export default function StaffPage() {
 
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 18px' }}>
         {actionMsg && <div style={{ background: '#f0fdf4', border: '1.5px solid #86efac', borderRadius: 10, padding: '12px 16px', marginBottom: 16, fontSize: 13, fontWeight: 700, color: '#1a3a2a' }}>{actionMsg}</div>}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
           {[
             { label: '参加確定', count: confirmedCount, icon: '✅', color: '#2d7a4a', bg: '#f0fdf4', border: '#86efac' },
             { label: 'キャンセル待ち', count: waitingCount, icon: '⏳', color: '#d97706', bg: '#fffbeb', border: '#fcd34d' },
-            { label: 'キャンセル', count: cancelledCount, icon: '🚫', color: '#ef4444', bg: '#fef2f2', border: '#fca5a5' },
+            { label: 'キャンセル', count: cancelledCount, icon: '🚫', color: '#ef4444', bg: '#fef2f2', border: '#fca5a5' },,
+          { label: '懇親会参加', count: partyCount, icon: '🍻', color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe' }
           ].map(s => (
             <div key={s.label} style={{ background: s.bg, border: `1.5px solid ${s.border}`, borderRadius: 12, padding: '14px 16px', textAlign: 'center' }}>
               <div style={{ fontSize: 22 }}>{s.icon}</div>
@@ -608,6 +627,12 @@ export default function StaffPage() {
                       <span>🏪 {getShopName(p.shop_id)} </span>
                       <span>{p.is_first ? '🆕 初回' : '↩️ リピート'} </span>
                       <span>{p.party ? '🍻 懇親会参加' : '懇親会不参加'}</span>
+                      {(userInfo?.role === 'shop' || userInfo?.role === 'admin') && p.status === 'confirmed' && (
+                        <button
+                          onClick={() => handlePartyToggle(p)}
+                          style={{ fontSize: 11, padding: '2px 10px', borderRadius: 12, border: p.party ? '1px solid #7c3aed' : '1px solid #9ca3af', background: p.party ? '#f5f3ff' : '#f3f4f6', color: p.party ? '#7c3aed' : '#6b7280', cursor: 'pointer', fontWeight: 700, marginLeft: 4 }}
+                        >{p.party ? '不参加に変更' : '参加に変更'}</button>
+                      )}
                       {p.companions?.length > 0 && <span> 👥 同伴者{p.companions.length}名</span>}
                     </div>
                     {p.remarks && <div style={{ fontSize: 11, color: '#555', marginTop: 6, padding: '4px 8px', background: '#f0f7f0', borderRadius: 4, borderLeft: '3px solid #4a9060' }}>💬 質問事項：{p.remarks}</div>}
